@@ -446,7 +446,7 @@ async def stats_cmd(message: types.Message):
         f"Pending Reply:     {pending}\n"
         f"Screenshots Sent:  {screenshots}\n"
         f"Unpaid (No SS):    {unpaid}\n\n"
-        f"CRM Dashboard: http://localhost:8080"
+        f"CRM Dashboard: https://play246-crm.onrender.com"
     )
     await message.reply(text)
 
@@ -526,7 +526,7 @@ async def help_cmd(message: types.Message):
         "/export_leads — Download leads as CSV\n"
         "/stats — View live dashboard stats\n"
         "/help — Show this help menu\n\n"
-        "CRM Dashboard: http://localhost:8080"
+        "CRM Dashboard: https://play246-crm.onrender.com"
     )
     await message.reply(text)
 
