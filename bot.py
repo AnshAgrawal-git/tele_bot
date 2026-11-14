@@ -1827,6 +1827,17 @@ async def api_chats(request):
                            FROM users ORDER BY is_pending DESC,
                                 COALESCE(last_customer_at, created_at, '') DESC, user_id DESC""")
     paid = {r["user_id"] for r in await db_all("SELECT DISTINCT user_id FROM media_vault")}
+    handoff = int(await get_setting("handoff_minutes") or 0)
+    now = datetime.now(timezone.utc)
+
+    def paused_minutes(last_agent_at):
+        """Minutes left before the bot answers again after a team reply (0 = bot is answering)."""
+        last = parse_iso(last_agent_at)
+        if not handoff or not last:
+            return 0
+        left = timedelta(minutes=handoff) - (now - last)
+        return max(0, -(-int(left.total_seconds()) // 60))
+
     return web.json_response([{
         "user_id": r["user_id"],
         "first_name": r["first_name"] or "Player",
@@ -1838,6 +1849,7 @@ async def api_chats(request):
         "last_at": r["last_customer_at"] or r["created_at"] or "",
         "has_screenshot": r["user_id"] in paid,
         "has_topic": bool(r["topic_id"]),
+        "bot_paused_minutes": paused_minutes(r["last_agent_at"]),
     } for r in rows])
 
 

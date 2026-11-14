@@ -11,7 +11,7 @@
   --text:#16181d; --muted:#667085; --faint:#98a2b3;
   --accent:#4a57c8; --accent-hover:#3f4bb3; --accent-soft:#eceefb; --accent-text:#ffffff;
   --ok:#2f7d56; --ok-soft:#e8f4ee; --warn:#a46a12; --warn-soft:#fbf3e4; --bad:#b4373a; --bad-soft:#fbecec;
-  --bubble-in:#ffffff; --bubble-bot:#eef0f4; --bubble-agent:#4a57c8;
+  --bubble-in:#ffffff; --bubble-bot:#eef0f4; --bubble-agent:#16181d; --on-bubble-agent:#ffffff;
   --chat-bg:#eef0f3;
   --shadow:0 1px 2px rgba(16,24,40,.05); --shadow-lg:0 12px 32px rgba(16,24,40,.14);
   --radius:12px; --radius-sm:8px;
@@ -21,7 +21,7 @@
   --text:#e7e9ee; --muted:#9aa2b1; --faint:#6b7383;
   --accent:#7d88e8; --accent-hover:#8f99ef; --accent-soft:#252a45; --accent-text:#0f1115;
   --ok:#5cb98a; --ok-soft:#1b2c24; --warn:#d6a24c; --warn-soft:#2e2717; --bad:#e07a7c; --bad-soft:#2f1d1e;
-  --bubble-in:#1f232c; --bubble-bot:#252a34; --bubble-agent:#5560c9;
+  --bubble-in:#1f232c; --bubble-bot:#252a34; --bubble-agent:#e7e9ee; --on-bubble-agent:#0f1115;
   --chat-bg:#12151b;
   --shadow:0 1px 2px rgba(0,0,0,.3); --shadow-lg:0 12px 32px rgba(0,0,0,.5);
 }
@@ -113,11 +113,20 @@ button.chip:hover{background:var(--hover)}
 .convo{display:flex;flex-direction:column;min-height:0;background:var(--chat-bg)}
 .convo-head{display:flex;align-items:center;gap:12px;padding:12px 18px;background:var(--surface);border-bottom:1px solid var(--border)}
 .msgs{flex:1;padding:18px 18px 8px;display:flex;flex-direction:column;gap:8px}
-.bubble{max-width:min(560px,78%);padding:8px 12px;border-radius:14px;white-space:pre-wrap;word-wrap:break-word;box-shadow:var(--shadow)}
+.bubble{max-width:min(560px,78%);padding:8px 12px;border-radius:14px;white-space:pre-wrap;word-wrap:break-word}
 .bubble .meta{display:flex;gap:6px;align-items:center;font-size:11px;margin-top:4px;opacity:.75}
 .b-in{align-self:flex-start;background:var(--bubble-in);border-bottom-left-radius:4px}
 .b-bot{align-self:flex-end;background:var(--bubble-bot);border-bottom-right-radius:4px}
-.b-agent{align-self:flex-end;background:var(--bubble-agent);color:#fff;border-bottom-right-radius:4px}
+.b-agent{align-self:flex-end;background:var(--bubble-agent);color:var(--on-bubble-agent);border-bottom-right-radius:4px}
+.b-agent a{color:inherit}
+.who{display:flex;flex-direction:column;min-width:0}
+.who-status{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);min-width:0}
+.who-status::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
+.who-status.paused::before{background:var(--warn)}
+.typing{align-self:flex-start;display:inline-flex;gap:4px;padding:11px 12px;background:var(--bubble-bot);border-radius:14px;border-bottom-left-radius:4px;flex-shrink:0}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:typing 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes typing{0%,80%,100%{opacity:.3}40%{opacity:1}}
 .b-label{font-size:11.5px;font-weight:600;margin-bottom:3px;opacity:.8}
 .day-sep{align-self:center;font-size:11.5px;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:2px 10px;border-radius:999px;margin:6px 0}
 .composer{background:var(--surface);border-top:1px solid var(--border);padding:10px 14px 12px}
@@ -193,8 +202,13 @@ button.chip:hover{background:var(--hover)}
 .more summary::-webkit-details-marker{display:none}
 .tg-preview{background:var(--chat-bg);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px;border:1px solid var(--border)}
 .tg-preview>*{flex-shrink:0}
-.tg-bubble{align-self:flex-start;max-width:92%;background:var(--bubble-in);border-radius:12px;border-bottom-left-radius:4px;overflow:hidden;box-shadow:var(--shadow)}
-.tg-bubble.me{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-left-radius:12px;border-bottom-right-radius:4px}
+.tg-bubble{align-self:flex-start;max-width:92%;background:var(--bubble-in);border-radius:12px;border-bottom-left-radius:4px;overflow:hidden}
+.tg-bubble.me{align-self:flex-end;background:var(--bubble-agent);color:var(--on-bubble-agent);border-bottom-left-radius:12px;border-bottom-right-radius:4px}
+.tg-answers{align-self:flex-start;width:92%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+.tg-answers span{display:block;padding:9px 12px;font-size:13px;font-weight:500;color:var(--accent);text-align:center}
+.tg-answers span+span{border-top:1px solid var(--border)}
+.tg-answers.split{display:grid;grid-template-columns:1fr 1fr}
+.tg-answers.split span+span{border-top:0;border-left:1px solid var(--border)}
 .tg-bubble .t{padding:8px 11px;white-space:pre-wrap;word-wrap:break-word;font-size:13.5px}
 .tg-bubble img,.tg-bubble video{display:block;width:100%;max-height:200px;object-fit:cover}
 .tg-btns{display:flex;flex-direction:column;gap:4px;align-self:flex-start;width:92%}
@@ -239,6 +253,27 @@ button.chip:hover{background:var(--hover)}
 .modal{background:var(--surface);border-radius:14px;max-width:420px;width:100%;padding:20px;box-shadow:var(--shadow-lg)}
 .modal h3{margin:0 0 6px;font-size:16.5px}.modal p{margin:0 0 18px;color:var(--muted)}
 .modal .actions{display:flex;justify-content:flex-end;gap:8px}
+.modal.split{padding:0;overflow:hidden;text-align:center}
+.modal.split .body{padding:22px 20px 18px}
+.modal.split p{margin:0}
+.modal.split .actions{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--border)}
+.modal.split .actions button{height:48px;border:0;background:transparent;font-weight:600}
+.modal.split .actions button+button{border-left:1px solid var(--border);color:var(--accent)}
+.modal.split .actions button.danger{color:var(--bad)}
+.modal.split .actions button:hover{background:var(--hover)}
+.edit-pen{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--muted);padding:0;flex:none}
+.edit-pen:hover{color:var(--accent);border-color:var(--accent)}
+.edit-pen svg.i{width:14px;height:14px}
+.progress-list{display:flex;flex-direction:column}
+.p-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.p-row:last-child{border-bottom:0}
+.p-row.done{color:var(--muted)}
+.p-row .tick{color:var(--ok);display:inline-flex}
+.p-row .p-count{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
+.spin{width:16px;height:16px;border-radius:50%;border:2px solid var(--border-strong);border-top-color:var(--accent);animation:spin .8s linear infinite;flex:none}
+.p-wait{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.typing i,.spin{animation:none}.typing i{opacity:.6}}
 .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:95;display:grid;place-items:center;padding:20px}
 .lightbox img{max-width:100%;max-height:100%;border-radius:8px}
 .login{position:fixed;inset:0;background:var(--bg);display:grid;place-items:center;z-index:200;padding:20px}
@@ -364,6 +399,7 @@ button.chip:hover{background:var(--hover)}
           <div class="field-title">Picture (optional)</div>
           <div id="bc-file-box"></div>
           <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="bc-send" onclick="confirmBroadcast()"><svg class="i"><use href="#i-send"/></svg>Send broadcast</button></div>
+          <div id="bc-progress" aria-live="polite"></div>
         </div>
         <div><div class="field-title">Preview</div><div class="tg-preview" id="bc-preview"></div></div>
       </div>
@@ -410,6 +446,7 @@ button.chip:hover{background:var(--hover)}
   <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></symbol>
   <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
   <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></symbol>
 </svg>
 
 <script>
@@ -450,6 +487,9 @@ const initials = n => (n || '?').trim().split(/\s+/).slice(0,2).map(w => w[0]).j
 const fmtMin = n => { n = +n; if (n < 60) return `${n} minute${n==1?'':'s'}`; if (n % 1440 === 0) { const d=n/1440; return `${d} day${d==1?'':'s'}`;} if (n % 60 === 0) { const h=n/60; return `${h} hour${h==1?'':'s'}`;} return `${Math.floor(n/60)} h ${n%60} min`; };
 const toDisplay = t => (t || '').replace(/\{\s*name\s*\}/gi, '[name]').replace(/\{\s*phone\s*\}/gi, '[phone]');
 const toStore = t => (t || '').replace(/\[\s*name\s*\]/gi, '{name}').replace(/\[\s*phone\s*\]/gi, '{phone}');
+/* Bot buttons shown under a message, as full-width answer rows (two short ones side by side) */
+const answersHtml = btns => !btns || !btns.length ? '' :
+  `<div class="tg-answers ${btns.length === 2 && btns.every(b => (b.label || '').length <= 14) ? 'split' : ''}">${btns.map(b => `<span>${esc(b.label)}</span>`).join('')}</div>`;
 const fillSample = t => (t || '').replace(/[\[{]\s*name\s*[\]}]/gi, SAMPLE.name).replace(/[\[{]\s*phone\s*[\]}]/gi, SAMPLE.phone);
 const linkify = s => esc(s).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
 const normalize = t => (t || '').toLowerCase().replace(/[^\p{L}\p{N}\p{M}]+/gu, ' ').trim().replace(/\s+/g, ' ');
@@ -492,8 +532,9 @@ const fail = e => toast(e.message || String(e), {bad: true});
 function confirmBox({title, text, ok = 'OK', danger = false}) {
   return new Promise(res => {
     const root = $('modal-root');
-    root.innerHTML = `<div class="modal-bg"><div class="modal" role="dialog"><h3>${esc(title)}</h3><p>${esc(text)}</p>
-      <div class="actions"><button class="btn" data-a="0">Cancel</button><button class="btn ${danger?'danger':'primary'}" data-a="1">${esc(ok)}</button></div></div></div>`;
+    root.innerHTML = `<div class="modal-bg"><div class="modal split" role="dialog" aria-modal="true"><div class="body"><h3>${esc(title)}</h3><p>${esc(text)}</p></div>
+      <div class="actions"><button data-a="0">Cancel</button><button class="${danger?'danger':''}" data-a="1">${esc(ok)}</button></div></div></div>`;
+    root.querySelector('[data-a="1"]').focus();
     root.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { root.innerHTML = ''; res(b.dataset.a === '1'); });
     root.querySelector('.modal-bg').onclick = e => { if (e.target.classList.contains('modal-bg')) { root.innerHTML = ''; res(false); } };
   });
@@ -611,8 +652,11 @@ function renderConvo(scroll) {
     <div class="convo-head">
       <button class="btn icon ghost show-m" onclick="closeChat()" aria-label="Back">${icon('back')}</button>
       <div class="avatar">${esc(initials(c.first_name))}</div>
-      <div class="grow"><b class="truncate" style="display:block">${esc(c.first_name)}</b>
-        <span class="muted" style="font-size:12.5px">${c.phone_number ? '+' + esc(c.phone_number.replace(/^\+/,'')) : 'No phone yet'}${c.username ? ' · @' + esc(c.username) : ''}</span></div>
+      <div class="who grow"><div class="row" style="gap:6px;min-width:0"><b class="truncate">${esc(c.first_name)}</b>
+        <span class="muted truncate" style="font-size:12.5px">${c.phone_number ? '+' + esc(c.phone_number.replace(/^\+/,'')) : 'No phone yet'}${c.username ? ' · @' + esc(c.username) : ''}</span></div>
+        ${c.bot_paused_minutes
+          ? `<span class="who-status paused"><span class="truncate">Your team is talking · bot paused for ${fmtMin(c.bot_paused_minutes)}</span></span>`
+          : '<span class="who-status"><span class="truncate">Bot is answering</span></span>'}</div>
       ${c.is_pending ? `<button class="btn small" onclick="markDone(${c.user_id})">${icon('check','sm')}<span class="hide-m">Mark as done</span></button>` : '<span class="badge ok hide-m">Answered</span>'}
     </div>
     <div class="msgs scroll" id="msgs">${bubbles || '<div class="empty">No messages yet.</div>'}</div>
@@ -676,7 +720,10 @@ function mcardOnly(m, label, isAfter) {
       <button class="after-link" onclick="event.stopPropagation();newAfter(${m.id})">${icon('plus','sm')} Add a message after this</button>
     </div>
     <div class="right">
-      <button class="switch ${m.is_active?'on':''}" onclick="event.stopPropagation();toggleActive(${m.id})" title="${m.is_active?'On — click to switch off':'Off — click to switch on'}" aria-label="On/off"></button>
+      <div class="row" style="gap:6px">
+        <button class="edit-pen" onclick="event.stopPropagation();selectMessage(${m.id})" title="Edit" aria-label="Edit ${esc(m.name)}">${icon('pen')}</button>
+        <button class="switch ${m.is_active?'on':''}" onclick="event.stopPropagation();toggleActive(${m.id})" title="${m.is_active?'On — click to switch off':'Off — click to switch on'}" aria-label="On/off"></button>
+      </div>
       ${m.use_count ? `<span class="faint" style="font-size:11.5px">Sent ${m.use_count}×</span>` : ''}
     </div>
   </div>`;
@@ -872,7 +919,7 @@ function paintPreview() {
   const txt = fillSample(d.text);
   let html = `<div class="tg-bubble">${mediaSrc ? (mediaKind==='video' ? `<video src="${mediaSrc}" muted></video>` : `<img src="${mediaSrc}" alt="">`) : ''}${txt ? `<div class="t">${linkify(txt)}</div>` : (mediaSrc ? '' : '<div class="t faint">Your message will appear here</div>')}</div>`;
   const btns = d.buttons.filter(b => b.label.trim());
-  if (btns.length) html += `<div class="tg-btns">${btns.map(b => `<span>${esc(b.label)}</span>`).join('')}</div>`;
+  html += answersHtml(btns);
   if (d.kind === 'start') html += `<div class="tg-kb">📱 Share Mobile Number</div>`;
   el.innerHTML = html;
   const w = document.querySelector('.when-box .grow'); if (w) w.textContent = whenText();
@@ -950,10 +997,11 @@ async function deleteMessage() {
 function renderTry() {
   const log = S.tryLog.map(x => {
     if (x.type === 'me') return `<div class="tg-bubble me"><div class="t">${esc(x.text)}</div></div>`;
+    if (x.type === 'typing') return '<div class="typing" aria-label="The bot is typing"><i></i><i></i><i></i></div>';
     if (x.type === 'note') return `<div class="sys-note ${x.warn?'warn':''}">${esc(x.text)}${x.create ? `<div style="margin-top:6px"><button class="btn small primary" onclick='newMessage("keywords",{keywords:${esc(JSON.stringify([x.create]))}})'>${icon('plus','sm')} Create an answer for this</button></div>` : ''}</div>`;
     const m = x.m;
     return `<div class="tg-bubble">${m.media ? (m.media.kind==='video' ? `<video src="${m.media.url}" muted></video>` : `<img src="${m.media.url}" alt="">`) : ''}${x.text ? `<div class="t">${linkify(x.text)}</div>` : ''}</div>` +
-      (m.buttons.length ? `<div class="tg-btns">${m.buttons.map(b => `<span>${esc(b.label)}</span>`).join('')}</div>` : '') +
+      answersHtml(m.buttons) +
       (m.kind === 'start' ? '<div class="tg-kb">📱 Share Mobile Number</div>' : '');
   }).join('');
   const body = `<p class="muted" style="margin:0 0 12px">See exactly how the bot answers. Nothing is sent to anyone.</p>
@@ -970,16 +1018,20 @@ function renderTry() {
   const l = $('try-log'); l.scrollTop = l.scrollHeight;
 }
 async function runTry(payload, shown) {
-  S.tryLog.push({type:'me', text: shown});
+  S.tryLog.push({type:'me', text: shown}, {type:'typing'});
+  renderTry();
+  const typingShown = Date.now();
   try {
     const r = await api('/api/simulate', {method:'POST', body: payload});
+    await new Promise(ok => setTimeout(ok, Math.max(0, 450 - (Date.now() - typingShown))));
+    S.tryLog = S.tryLog.filter(x => x.type !== 'typing');
     const noAnswer = payload.text && (!r.message || r.message.kind === 'fallback');
     if (r.message && r.will_send) S.tryLog.push({type:'bot', m: r.message, text: r.preview_text});
     S.tryLog.push({type:'note', text: r.reason, warn: noAnswer, create: noAnswer ? normalize(payload.text).slice(0, 40) : null});
     if (r.message && r.will_send) {
       (r.then || []).forEach(t => { S.tryLog.push({type:'note', text: `⏱ ${t.when}${t.message.skip_if_replied && t.minutes ? ' (skipped if they reply first)' : ''}`}); S.tryLog.push({type:'bot', m: t.message, text: t.preview_text}); });
     }
-  } catch (e) { S.tryLog.push({type:'note', text: e.message, warn: true}); }
+  } catch (e) { S.tryLog = S.tryLog.filter(x => x.type !== 'typing'); S.tryLog.push({type:'note', text: e.message, warn: true}); }
   renderTry(); setTimeout(() => $('try-input') && $('try-input').focus(), 0);
 }
 function tryText() { const v = $('try-input').value.trim(); if (v) runTry({event:'text', text: v}, v); }
@@ -1039,12 +1091,21 @@ async function confirmBroadcast() {
   if (!n) return toast('Nobody is in this group yet.', {bad:true});
   if (!(await confirmBox({title:`Send to ${n} ${n===1?'person':'people'}?`, text:"This can't be undone.", ok:'Send now'}))) return;
   const btn = $('bc-send'); btn.disabled = true; btn.textContent = 'Sending…';
+  const people = `${n} ${n===1?'person':'people'}`;
+  const tick = icon('check', 'sm');
+  const row = (state, label, count = '') => `<div class="p-row ${state==='done'?'done':''}">${
+    state === 'done' ? `<span class="tick">${tick}</span>` : state === 'now' ? '<span class="spin" role="status" aria-label="In progress"></span>' : '<span class="p-wait" aria-hidden="true"></span>'
+    }<span class="grow">${label}</span>${count ? `<span class="p-count">${count}</span>` : ''}</div>`;
+  const showProgress = rows => { $('bc-progress').innerHTML = `<div class="card section" style="margin-top:14px"><h3>Sending your broadcast</h3><div class="progress-list">${rows.join('')}</div></div>`; };
+  showProgress([...(S.bcFile ? [row('now', 'Uploading the picture')] : []), row(S.bcFile ? 'wait' : 'now', `Sending to ${people}`), row('wait', 'Noting it in each Telegram topic')]);
   try {
     const fd = new FormData(); fd.append('audience', S.audience); fd.append('text', text); if (S.bcFile) fd.append('file', S.bcFile);
+    const hadFile = !!S.bcFile;
     const r = await api('/api/broadcast', {method:'POST', body: fd});
+    showProgress([...(hadFile ? [row('done', 'Picture uploaded')] : []), row('done', `Sent to ${r.delivered} of ${n}`, r.failed ? `${r.failed} couldn't be reached` : ''), row('done', 'Noted in each Telegram topic')]);
     toast(`Sent to ${r.delivered}${r.failed ? ` · ${r.failed} couldn't be reached` : ''}`);
     $('bc-text').value = ''; S.bcFile = null; renderBcFile(); renderBcPreview();
-  } catch (e) { fail(e); } finally { btn.disabled = false; renderAud(); }
+  } catch (e) { $('bc-progress').innerHTML = ''; fail(e); } finally { btn.disabled = false; renderAud(); }
 }
 
 /* =====================================================================
