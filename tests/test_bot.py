@@ -17,6 +17,7 @@ from aiohttp.test_utils import TestClient, TestServer
 
 GROUP = B.ADMIN_GROUP_ID
 SENT = []
+BOT_NAME = {"name": "Prototype Bot"}
 _id = [1000]
 
 
@@ -43,6 +44,14 @@ class FakeSession(BaseSession):
             return T.MessageId(message_id=nid())
         if name in ("PinChatMessage", "AnswerCallbackQuery", "SetMyCommands"):
             return True
+        if name == "SetMyName":
+            if BOT_NAME.get("rate_limited"):
+                from aiogram.exceptions import TelegramRetryAfter
+                raise TelegramRetryAfter(method=method, message="Too Many Requests", retry_after=300)
+            BOT_NAME["name"] = d.get("name", "")
+            return True
+        if name == "GetMyName":
+            return T.BotName(name=BOT_NAME["name"])
         extra = {}
         if name == "SendPhoto":
             extra["photo"] = [T.PhotoSize(file_id="tgphoto123", file_unique_id="u", width=1, height=1)]
@@ -270,6 +279,16 @@ async def main():
         st = await (await c.get("/api/stats")).json()
         check(st["auto_today"] >= 3 and st["unanswered_today"] >= 1, f"stats count auto-replies ({st['auto_today']}) and unanswered")
         r = await c.get("/"); check(r.status == 200, "CRM page served")
+        # bot display name
+        r = await c.get("/api/bot-name"); check(r.status == 200 and (await r.json())["name"] == "Prototype Bot", "read the bot's Telegram name")
+        r = await c.put("/api/bot-name", json={"name": "  Play 246   Support "})
+        check(r.status == 200 and (await r.json())["name"] == "Play 246 Support" and BOT_NAME["name"] == "Play 246 Support", "rename the bot (spaces tidied)")
+        r = await c.put("/api/bot-name", json={"name": "   "}); check(r.status == 400, "empty bot name rejected")
+        r = await c.put("/api/bot-name", json={"name": "x" * 65}); check(r.status == 400 and "64" in (await r.json())["error"], "bot name over 64 characters rejected")
+        BOT_NAME["rate_limited"] = True
+        r = await c.put("/api/bot-name", json={"name": "Another"}); err = (await r.json())["error"]
+        check(r.status == 502 and "5 minutes" in err and BOT_NAME["name"] == "Play 246 Support", "Telegram rate limit explained in plain words")
+        BOT_NAME["rate_limited"] = False
     print(f"\nALL {ok} CHECKS PASSED")
 
 asyncio.run(main())

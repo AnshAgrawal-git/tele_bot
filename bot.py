@@ -29,6 +29,7 @@ from datetime import datetime, timedelta, timezone
 import aiosqlite
 from aiohttp import web
 from aiogram import Bot, Dispatcher, F, types
+from aiogram.exceptions import TelegramRetryAfter
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -2161,6 +2162,42 @@ async def api_put_settings(request):
     return await api_get_settings(request)
 
 
+# ---- bot display name (the name customers see at the top of the Telegram chat) ----
+BOT_NAME_MAX = 64  # Telegram's limit for setMyName
+
+
+def _telegram_error(e: Exception) -> str:
+    if isinstance(e, TelegramRetryAfter):
+        wait = max(1, int(e.retry_after))
+        when = f"{wait} seconds" if wait < 120 else f"{-(-wait // 60)} minutes"
+        return f"Telegram only allows a few name changes at a time. Try again in {when}."
+    return "Couldn't reach Telegram. Check the bot token and your connection, then try again."
+
+
+async def api_get_bot_name(request):
+    try:
+        name = (await bot.get_my_name()).name
+    except Exception as e:
+        logging.warning("get_my_name failed: %s", e)
+        return web.json_response({"error": _telegram_error(e)}, status=502)
+    return web.json_response({"name": name, "max": BOT_NAME_MAX})
+
+
+async def api_put_bot_name(request):
+    d = await request.json()
+    name = " ".join(str(d.get("name") or "").split())
+    if not name:
+        return web.json_response({"error": "Type a name for the bot first."}, status=400)
+    if len(name) > BOT_NAME_MAX:
+        return web.json_response({"error": f"Keep the name to {BOT_NAME_MAX} characters or fewer."}, status=400)
+    try:
+        await bot.set_my_name(name=name)
+    except Exception as e:
+        logging.warning("set_my_name failed: %s", e)
+        return web.json_response({"error": _telegram_error(e)}, status=502)
+    return web.json_response({"name": name, "max": BOT_NAME_MAX})
+
+
 # ---- payments vault ----
 async def api_get_vault(request):
     rows = await db_all("SELECT id, user_id, sender_name, phone_number, utr_code, timestamp, ts FROM media_vault ORDER BY id DESC")
@@ -2269,6 +2306,8 @@ r.add_get("/api/media/{id}", api_media)
 r.add_post("/api/simulate", api_simulate)
 r.add_get("/api/settings", api_get_settings)
 r.add_put("/api/settings", api_put_settings)
+r.add_get("/api/bot-name", api_get_bot_name)
+r.add_put("/api/bot-name", api_put_bot_name)
 r.add_get("/api/vault", api_get_vault)
 r.add_get("/api/vault/{id}/image", api_vault_image)
 r.add_put("/api/vault/{id}", api_vault_update)
