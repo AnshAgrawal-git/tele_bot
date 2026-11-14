@@ -8,9 +8,10 @@
 <style>
 :root{
   --bg:#f5f6f8; --surface:#ffffff; --subtle:#f0f2f5; --hover:#eceff3; --border:#e2e5ea; --border-strong:#d0d5dc;
-  --text:#16181d; --muted:#667085; --faint:#98a2b3;
+  --text:#16181d; --muted:#626c81; --faint:#6a7282;
   --accent:#4a57c8; --accent-hover:#3f4bb3; --accent-soft:#eceefb; --accent-text:#ffffff;
-  --ok:#2f7d56; --ok-soft:#e8f4ee; --warn:#a46a12; --warn-soft:#fbf3e4; --bad:#b4373a; --bad-soft:#fbecec;
+  --ok:#2e7a54; --ok-soft:#e8f4ee; --warn:#986210; --warn-soft:#fbf3e4; --bad:#b4373a; --bad-soft:#fbecec; --on-bad:#ffffff;
+  --font:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --bubble-in:#ffffff; --bubble-bot:#eef0f4; --bubble-agent:#16181d; --on-bubble-agent:#ffffff;
   --chat-bg:#eef0f3;
   --shadow:0 1px 2px rgba(16,24,40,.05); --shadow-lg:0 12px 32px rgba(16,24,40,.14);
@@ -18,20 +19,27 @@
 }
 [data-theme="dark"]{
   --bg:#0f1115; --surface:#161920; --subtle:#1c2028; --hover:#222731; --border:#2a2f39; --border-strong:#363c48;
-  --text:#e7e9ee; --muted:#9aa2b1; --faint:#6b7383;
-  --accent:#7d88e8; --accent-hover:#8f99ef; --accent-soft:#252a45; --accent-text:#0f1115;
-  --ok:#5cb98a; --ok-soft:#1b2c24; --warn:#d6a24c; --warn-soft:#2e2717; --bad:#e07a7c; --bad-soft:#2f1d1e;
+  --text:#e7e9ee; --muted:#9aa2b1; --faint:#828996;
+  --accent:#8a94ec; --accent-hover:#9aa3f1; --accent-soft:#252a45; --accent-text:#0f1115;
+  --ok:#5cb98a; --ok-soft:#1b2c24; --warn:#d6a24c; --warn-soft:#2e2717; --bad:#e07a7c; --bad-soft:#2f1d1e; --on-bad:#0f1115;
   --bubble-in:#1f232c; --bubble-bot:#252a34; --bubble-agent:#e7e9ee; --on-bubble-agent:#0f1115;
   --chat-bg:#12151b;
   --shadow:0 1px 2px rgba(0,0,0,.3); --shadow-lg:0 12px 32px rgba(0,0,0,.5);
 }
+@font-face{font-family:"IBM Plex Sans";font-style:normal;font-weight:400 700;font-display:swap;src:url(/fonts/ibm-plex-sans.woff2) format("woff2")}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  background:var(--bg);color:var(--text);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased;caret-color:var(--accent)}
+h1,h2,h3{text-wrap:balance;letter-spacing:-.01em}
+p,.hint,.preview{text-wrap:pretty}
+::selection{background:var(--accent-soft);color:var(--text)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.input:focus-visible,.textarea:focus-visible,.select:focus-visible,.tags input:focus-visible{outline:none}
+.num,.time,.count,.badge,.p-count,.kpi .num,.aud b,.bar-row b{font-variant-numeric:tabular-nums}
+html{scrollbar-color:var(--border-strong) transparent}
 button,input,textarea,select{font:inherit;color:inherit}
 button{cursor:pointer}
-a{color:var(--accent)}
+a{color:var(--accent);text-underline-offset:2px}
 svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .sm svg.i, svg.i.sm{width:15px;height:15px}
 .hidden{display:none!important}
@@ -53,7 +61,9 @@ svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-widt
 .btn.ghost:hover{background:var(--hover)}
 .btn.danger{color:var(--bad)}
 .btn.small{height:30px;padding:0 10px;font-size:13px}
-.btn.icon{width:36px;padding:0}
+.btn.icon{width:36px;padding:0;flex:none}
+::placeholder{color:var(--muted);opacity:1}
+:root{color-scheme:light} [data-theme="dark"]{color-scheme:dark}
 .input,.textarea,.select{width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--radius-sm);padding:8px 11px;outline:none;transition:border-color .12s,box-shadow .12s}
 .input:focus,.textarea:focus,.select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .textarea{resize:vertical;min-height:120px;line-height:1.5}
@@ -64,15 +74,16 @@ label.field>span,.field-title{display:block;font-weight:600;margin-bottom:6px}
   background:var(--surface);font-size:12.5px;white-space:nowrap}
 button.chip:hover{background:var(--hover)}
 .chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
-.badge{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 7px;border-radius:999px;font-size:11.5px;font-weight:600;background:var(--subtle);color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:4px;height:20px;white-space:nowrap;padding:0 7px;border-radius:999px;font-size:11.5px;font-weight:600;background:var(--subtle);color:var(--muted)}
 .badge.ok{background:var(--ok-soft);color:var(--ok)} .badge.warn{background:var(--warn-soft);color:var(--warn)}
 .badge.bad{background:var(--bad-soft);color:var(--bad)} .badge.accent{background:var(--accent-soft);color:var(--accent)}
 .switch{position:relative;width:36px;height:20px;flex:none;border-radius:999px;background:var(--border-strong);border:0;padding:0;transition:background .15s}
+.switch::before{content:"";position:absolute;inset:-12px -4px}
 .switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
 .switch.on{background:var(--ok)} .switch.on::after{transform:translateX(16px)}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
 .seg{display:inline-flex;background:var(--subtle);border-radius:9px;padding:3px;gap:2px;flex-wrap:wrap}
-.seg button{border:0;background:transparent;height:28px;padding:0 11px;border-radius:7px;font-size:13px;color:var(--muted);font-weight:500}
+.seg button{border:0;background:transparent;height:28px;padding:0 11px;border-radius:7px;font-size:13px;color:var(--muted);font-weight:500;white-space:nowrap}
 .seg button.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
 
 /* ---------- app shell ---------- */
@@ -96,14 +107,16 @@ button.chip:hover{background:var(--hover)}
 
 /* ---------- chats ---------- */
 .inbox{display:grid;grid-template-columns:340px minmax(0,1fr);height:100%}
-#chat-filters{flex-wrap:nowrap;overflow-x:auto;max-width:100%}#chat-filters button{padding:0 9px}
+#chat-filters{flex-wrap:wrap;max-width:100%}#chat-filters button{padding:0 9px}
+.chat-item.on .time{color:var(--muted)}
 .list-pane{border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;min-height:0}
 .list-head{padding:16px 14px 10px;border-bottom:1px solid var(--border)}
 .list-head h1{font-size:18px;margin:0 0 10px}
 .search{position:relative}.search svg{position:absolute;left:10px;top:9px;color:var(--faint)}
 .search .input{padding-left:34px;height:36px}
-.chat-item{display:flex;gap:11px;padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;border-left:3px solid transparent}
+.chat-item{display:flex;gap:11px;width:100%;text-align:left;background:transparent;padding:11px 14px;border:0;border-bottom:1px solid var(--border);cursor:pointer;border-left:3px solid transparent}
 .chat-item:hover{background:var(--hover)}
+.chat-item:focus-visible{outline-offset:-2px}
 .chat-item.on{background:var(--accent-soft);border-left-color:var(--accent)}
 .avatar{width:38px;height:38px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:600;font-size:13px;background:var(--subtle);color:var(--muted)}
 .chat-item .name{font-weight:600}
@@ -119,6 +132,9 @@ button.chip:hover{background:var(--hover)}
 .b-bot{align-self:flex-end;background:var(--bubble-bot);border-bottom-right-radius:4px}
 .b-agent{align-self:flex-end;background:var(--bubble-agent);color:var(--on-bubble-agent);border-bottom-right-radius:4px}
 .b-agent a{color:inherit}
+.b-agent.saved{background:var(--surface);color:var(--text);box-shadow:inset 0 0 0 1px var(--bubble-agent)}
+.b-agent.saved .b-label{display:flex;align-items:center;gap:4px;color:var(--muted);opacity:1}
+.b-agent.saved .b-label svg.i{width:13px;height:13px}
 .who{display:flex;flex-direction:column;min-width:0}
 .who-status{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);min-width:0}
 .who-status::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
@@ -130,7 +146,20 @@ button.chip:hover{background:var(--hover)}
 .b-label{font-size:11.5px;font-weight:600;margin-bottom:3px;opacity:.8}
 .day-sep{align-self:center;font-size:11.5px;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:2px 10px;border-radius:999px;margin:6px 0}
 .composer{background:var(--surface);border-top:1px solid var(--border);padding:10px 14px 12px}
-.saved-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px}
+.saved-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+.saved-row.more{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}
+.saved-row .chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.saved-preview{border:1px solid var(--border);border-radius:var(--radius-box,10px);background:var(--subtle);padding:10px 12px;margin-bottom:8px}
+.saved-preview .sp-head{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);margin-bottom:4px}
+.saved-preview .sp-text{white-space:pre-wrap;word-wrap:break-word;max-height:140px;overflow-y:auto;font-size:13.5px}
+.saved-preview .sp-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:8px;flex-wrap:wrap}
+.pay-strip{display:flex;align-items:center;gap:10px;padding:8px 18px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.pay-strip .thumb-btn{width:40px;height:40px;border-radius:8px;overflow:hidden;border:1px solid var(--border);padding:0;background:var(--subtle);flex:none;cursor:zoom-in}
+.pay-strip .thumb-btn img{width:100%;height:100%;object-fit:cover;display:block}
+.pay-strip .grow{font-size:13px}
+.kw-clash{display:flex;align-items:flex-start;gap:6px;font-size:12.5px;color:var(--warn);margin-top:6px}
+.tabs{margin-bottom:16px}
+.tab-panel[hidden]{display:none}
 .saved-row::-webkit-scrollbar{display:none}
 .compose-box{display:flex;align-items:flex-end;gap:8px}
 .compose-box textarea{min-height:40px;max-height:160px;resize:none;height:40px}
@@ -156,7 +185,8 @@ button.chip:hover{background:var(--hover)}
 .mcard:hover{border-color:var(--border-strong)}
 .mcard.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .mcard.off{opacity:.62}
-.mcard .ico{width:32px;height:32px;border-radius:9px;background:var(--subtle);display:grid;place-items:center;flex:none;font-size:16px}
+.mcard .ico{width:32px;height:32px;border-radius:9px;background:var(--subtle);color:var(--muted);display:grid;place-items:center;flex:none}
+.mcard.on .ico{background:var(--accent-soft);color:var(--accent)}
 .mcard .title{font-weight:600}
 .mcard .when{font-size:12.5px;color:var(--muted);margin-top:1px}
 .mcard .preview{font-size:13px;color:var(--muted);margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -164,7 +194,9 @@ button.chip:hover{background:var(--hover)}
 .chain{margin:-2px 0 8px 22px;padding-left:14px;border-left:2px dashed var(--border-strong)}
 .chain .mcard{margin-bottom:6px}
 .after-tag{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--accent);margin-bottom:2px}
-.after-link{display:inline-flex;align-items:center;gap:4px;border:0;background:transparent;color:var(--muted);font-size:12.5px;font-weight:500;padding:4px 0 0;margin-top:4px}
+.after-link{display:none;align-items:center;gap:4px;border:0;background:transparent;color:var(--muted);font-size:12.5px;font-weight:500;padding:4px 0 0;margin-top:4px}
+.mcard.on .after-link,.mcard:focus-within .after-link{display:inline-flex}
+@media (hover:hover){.mcard:hover .after-link{display:inline-flex}}
 .after-link:hover{color:var(--accent)}
 .kids-box{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-top:16px}
 .kids-box .kid{display:flex;gap:8px;align-items:center;padding:5px 0;font-size:13px;cursor:pointer}
@@ -223,7 +255,8 @@ button.chip:hover{background:var(--hover)}
 /* ---------- payments / stats / broadcast ---------- */
 .grid-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
 .pay-card{overflow:hidden;display:flex;flex-direction:column}
-.pay-img{height:180px;background:var(--subtle);display:grid;place-items:center;color:var(--faint);cursor:zoom-in;overflow:hidden}
+.pay-img{height:180px;width:100%;border:0;padding:0;background:var(--subtle);display:grid;place-items:center;color:var(--muted);cursor:zoom-in;overflow:hidden}
+.pay-actions{display:grid;grid-template-columns:1fr 1fr auto;gap:6px}
 .pay-img img{width:100%;height:100%;object-fit:cover}
 .pay-body{padding:12px 14px;display:flex;flex-direction:column;gap:8px}
 .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px}
@@ -233,7 +266,7 @@ button.chip:hover{background:var(--hover)}
 .kpi .sub{font-size:12.5px;color:var(--muted);margin-top:2px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .section{padding:16px 18px}
-.section h3{margin:0 0 12px;font-size:15px}
+.section h2{margin:0 0 12px;font-size:15px}
 .bar-row{display:grid;grid-template-columns:150px 1fr 40px;gap:10px;align-items:center;padding:6px 0;font-size:13px}
 .bar{height:8px;background:var(--subtle);border-radius:999px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent);border-radius:999px}
 .aud{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:18px}
@@ -246,12 +279,12 @@ button.chip:hover{background:var(--hover)}
 /* ---------- overlays ---------- */
 .toasts{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:100;align-items:center}
 .toast{background:var(--text);color:var(--bg);padding:10px 14px;border-radius:10px;box-shadow:var(--shadow-lg);display:flex;gap:12px;align-items:center;font-size:13.5px;max-width:92vw;animation:pop .18s ease-out}
-.toast.bad{background:var(--bad);color:#fff}
+.toast.bad{background:var(--bad);color:var(--on-bad)}
 .toast button{background:transparent;border:0;color:inherit;font-weight:700;text-decoration:underline;padding:0}
 @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .modal-bg{position:fixed;inset:0;background:rgba(10,12,16,.45);display:grid;place-items:center;z-index:90;padding:16px}
 .modal{background:var(--surface);border-radius:14px;max-width:420px;width:100%;padding:20px;box-shadow:var(--shadow-lg)}
-.modal h3{margin:0 0 6px;font-size:16.5px}.modal p{margin:0 0 18px;color:var(--muted)}
+.modal h3,.modal .modal-title{margin:0 0 6px;font-size:16.5px}.modal p{margin:0 0 18px;color:var(--muted)}
 .modal .actions{display:flex;justify-content:flex-end;gap:8px}
 .modal.split{padding:0;overflow:hidden;text-align:center}
 .modal.split .body{padding:22px 20px 18px}
@@ -261,6 +294,8 @@ button.chip:hover{background:var(--hover)}
 .modal.split .actions button+button{border-left:1px solid var(--border);color:var(--accent)}
 .modal.split .actions button.danger{color:var(--bad)}
 .modal.split .actions button:hover{background:var(--hover)}
+.bot-name-card{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px 14px;margin-bottom:18px}
+.bot-name-card .ico{width:32px;height:32px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
 .edit-pen{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--muted);padding:0;flex:none}
 .edit-pen:hover{color:var(--accent);border-color:var(--accent)}
 .edit-pen svg.i{width:14px;height:14px}
@@ -300,6 +335,14 @@ button.chip:hover{background:var(--hover)}
   .two,.aud{grid-template-columns:1fr 1fr}
   .kpis{grid-template-columns:1fr 1fr;gap:10px}
   .kpi .num{font-size:22px}
+  .saved-row .chip{height:40px;padding:0 14px;font-size:13px}
+  .compose-box .btn.icon{width:44px;height:44px}
+  .compose-box textarea{font-size:16px;min-height:44px;height:44px}
+  .input,.select{font-size:16px}
+  .pay-strip .btn.small,.saved-preview .btn.small,.pay-actions .btn.small{height:40px;padding:0 14px}
+  .tg-preview ~ form .btn,.panel-body .chip{height:36px}
+  .pay-strip{padding:8px 14px}
+  .bc-actions{justify-content:stretch}.bc-actions .btn{flex:1}
   .bar-row{grid-template-columns:110px 1fr 34px}
   .hide-m{display:none!important}
 }
@@ -324,7 +367,6 @@ button.chip:hover{background:var(--hover)}
     <div class="brand"><div class="logo">246</div><div><b>Play 246</b><small>Support CRM</small></div></div>
     <nav class="nav" id="nav"></nav>
     <div class="side-foot">
-      <div id="open-notice" class="notice hidden">Login is off. Set <b>CRM_PASSWORD</b> in Render to protect this page.</div>
       <div class="nav">
         <button onclick="window.open('https://t.me/prototypetelegram247bot','_blank')"><svg class="i"><use href="#i-send"/></svg>Open the bot</button>
         <button onclick="toggleTheme()"><svg class="i"><use href="#i-theme"/></svg><span id="theme-lbl">Dark mode</span></button>
@@ -350,7 +392,7 @@ button.chip:hover{background:var(--hover)}
             <div class="search"><svg class="i sm"><use href="#i-search"/></svg><input class="input" id="chat-q" placeholder="Search name or phone" oninput="S.q=this.value;renderChatList()"></div>
             <div class="seg" style="margin-top:10px" id="chat-filters"></div>
           </div>
-          <div class="scroll grow" id="chat-list"></div>
+          <div class="scroll grow" id="chat-list" onkeydown="chatListKey(event)" aria-label="Chats"></div>
         </div>
         <div class="convo" id="convo"></div>
       </div>
@@ -367,12 +409,19 @@ button.chip:hover{background:var(--hover)}
       </div>
       <div class="bm">
         <div>
-          <div class="steps" id="steps"></div>
-          <div class="sub-label" style="margin-top:4px">Saved replies for your team</div>
-          <p class="muted" style="margin:-4px 0 10px;font-size:13px">The bot never sends these by itself. Your team sends them with one tap from Chats, or with /r in Telegram.</p>
-          <div id="saved-list"></div>
-          <div class="sub-label" style="margin-top:22px">Bot behaviour</div>
-          <div class="card settings-card" id="settings-card"></div>
+          <div class="seg tabs" id="bot-tabs" role="tablist" aria-label="Bot messages sections"></div>
+          <div class="tab-panel" id="tab-flow" role="tabpanel">
+            <div class="steps" id="steps"></div>
+          </div>
+          <div class="tab-panel" id="tab-saved" role="tabpanel" hidden>
+            <p class="muted" style="margin:0 0 12px;font-size:13px">The bot never sends these by itself. Your team picks one in Chats, checks it, then sends it. In Telegram, type /r in the customer’s chat.</p>
+            <div id="saved-list"></div>
+          </div>
+          <div class="tab-panel" id="tab-settings" role="tabpanel" hidden>
+            <div class="card bot-name-card" id="bot-name-card"></div>
+            <div class="sub-label">Bot behaviour</div>
+            <div class="card settings-card" id="settings-card"></div>
+          </div>
         </div>
         <div class="side" id="side"><div class="panel" id="side-panel"></div></div>
       </div>
@@ -398,21 +447,22 @@ button.chip:hover{background:var(--hover)}
             <textarea id="bc-text" class="textarea" placeholder="Type your message…" oninput="renderBcPreview()"></textarea></label>
           <div class="field-title">Picture (optional)</div>
           <div id="bc-file-box"></div>
-          <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="bc-send" onclick="confirmBroadcast()"><svg class="i"><use href="#i-send"/></svg>Send broadcast</button></div>
-          <div id="bc-progress" aria-live="polite"></div>
         </div>
-        <div><div class="field-title">Preview</div><div class="tg-preview" id="bc-preview"></div></div>
+        <div><div class="field-title">3. Check how it looks</div><div class="tg-preview" id="bc-preview"></div></div>
       </div>
+      <div class="row bc-actions" style="justify-content:flex-end;margin-top:16px"><button class="btn primary" id="bc-send" onclick="confirmBroadcast()"><svg class="i"><use href="#i-send"/></svg>Send broadcast</button></div>
+      <div id="bc-progress" aria-live="polite"></div>
     </section>
 
     <!-- STATS -->
     <section id="v-stats" class="page hidden">
       <div class="page-head"><div><h1>Overview</h1><p>How your bot and team are doing.</p></div>
         <a class="btn" href="/api/export/leads.csv"><svg class="i"><use href="#i-download"/></svg><span class="lbl">Download leads</span></a></div>
+      <div id="open-notice" class="warn-box hidden">Anyone with this link can open the CRM. Ask your developer to turn on a password for it.</div>
       <div class="kpis" id="kpis"></div>
       <div class="two">
-        <div class="card section"><h3>Bot today</h3><div id="bot-today"></div></div>
-        <div class="card section"><h3>Most used answers</h3><div id="top-answers"></div></div>
+        <div class="card section"><h2>Bot today</h2><div id="bot-today"></div></div>
+        <div class="card section"><h2>Bot’s most used answers</h2><div id="top-answers"></div></div>
       </div>
     </section>
 
@@ -420,7 +470,7 @@ button.chip:hover{background:var(--hover)}
   </div>
 </div>
 
-<div class="toasts" id="toasts"></div>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 <div id="modal-root"></div>
 <input type="file" id="file-pick" accept="image/*,video/*" class="hidden">
 
@@ -447,6 +497,12 @@ button.chip:hover{background:var(--hover)}
   <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
   <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
   <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5v-7Z"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 17.5h2"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8 1c0 1.7-2.4 2.2-2.4 3.7M12 17h.01"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 4h12v17l-6-4-6 4V4Z"/></symbol>
+  <symbol id="i-follow" viewBox="0 0 24 24"><path d="M5 4v7a4 4 0 0 0 4 4h10M15 11l4 4-4 4"/></symbol>
 </svg>
 
 <script>
@@ -455,25 +511,25 @@ button.chip:hover{background:var(--hover)}
    ===================================================================== */
 const S = {
   view: 'chats', chats: [], chatFilter: 'all', q: '', openChat: null, messages: [], chatFile: null,
-  bot: [], settings: {}, sel: null, draft: null, original: null, sideMode: 'try', tryLog: [],
+  bot: [], settings: {}, sel: null, draft: null, original: null, sideMode: 'try', tryLog: [], botTab: 'flow', pendingSaved: null,
   vault: [], payFilter: 'all', audience: 'all', counts: {}, bcFile: null, stats: {}
 };
 const VIEWS = [
   {id:'chats', label:'Chats', icon:'chat'},
-  {id:'bot', label:'Bot messages', short:'Bot', icon:'bot'},
+  {id:'bot', label:'Bot messages', icon:'bot'},
   {id:'pay', label:'Payments', icon:'receipt'},
   {id:'bc', label:'Broadcast', icon:'mega'},
   {id:'stats', label:'Overview', icon:'chart'},
 ];
 const KIND = {
-  start:   {ico:'👋', label:'When a customer starts the bot'},
-  contact: {ico:'📱', label:'When a customer shares their number'},
-  photo:   {ico:'🧾', label:'When a customer sends a photo'},
-  keywords:{ico:'💬', label:'When a customer mentions certain words', short:'Customer says certain words', desc:'Like “deposit” or “withdrawal”'},
-  quiet:   {ico:'⏰', label:'When a customer goes quiet', short:'Customer goes quiet', desc:'A follow-up after some time with no reply'},
-  fallback:{ico:'🤷', label:"When the bot doesn't understand"},
-  saved:   {ico:'📌', label:'Only when your team sends it', short:'Saved reply for your team', desc:'Your team sends it with one tap'},
-  after:   {ico:'↪️', label:'After another message'},
+  start:   {ico:'play', label:'When a customer starts the bot'},
+  contact: {ico:'phone', label:'When a customer shares their number'},
+  photo:   {ico:'receipt', label:'When a customer sends a photo'},
+  keywords:{ico:'chat', label:'When a customer mentions certain words', short:'Customer says certain words', desc:'Like “deposit” or “withdrawal”'},
+  quiet:   {ico:'clock', label:'When a customer goes quiet', short:'Customer goes quiet', desc:'A follow-up after some time with no reply'},
+  fallback:{ico:'help', label:"When the bot doesn't understand"},
+  saved:   {ico:'bookmark', label:'Only when your team sends it', short:'Saved reply for your team', desc:'Your team picks it in Chats and checks it before sending'},
+  after:   {ico:'follow', label:'After another message'},
 };
 const QUIET_OPTIONS = [5, 15, 30, 60, 180, 1440];
 const AFTER_OPTIONS = [0, 1, 5, 30, 60, 1440];
@@ -512,10 +568,14 @@ const dayLabel = iso => { const d = new Date(iso); if (!iso || isNaN(d)) return 
 async function api(path, opts = {}) {
   const o = {credentials: 'same-origin', ...opts};
   if (o.body && !(o.body instanceof FormData) && typeof o.body !== 'string') { o.body = JSON.stringify(o.body); o.headers = {'Content-Type':'application/json'}; }
-  const r = await fetch(path, o);
+  let r;
+  try { r = await fetch(path, o); }
+  catch (e) { throw new Error("Can't reach the CRM right now. Check your internet; if the CRM was asleep, wait 30 seconds and try again."); }
   if (r.status === 401 && path !== '/api/login') { showLogin(); throw new Error('Please sign in again.'); }
   const data = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
+  if (!r.ok) throw new Error(data.error || (r.status >= 500
+    ? "The CRM server had a problem. Wait a moment and try again; if it keeps happening, ask your developer to check the server log."
+    : "That didn't work. Check what you entered and try again."));
   return data;
 }
 
@@ -532,11 +592,19 @@ const fail = e => toast(e.message || String(e), {bad: true});
 function confirmBox({title, text, ok = 'OK', danger = false}) {
   return new Promise(res => {
     const root = $('modal-root');
-    root.innerHTML = `<div class="modal-bg"><div class="modal split" role="dialog" aria-modal="true"><div class="body"><h3>${esc(title)}</h3><p>${esc(text)}</p></div>
+    const back = document.activeElement;
+    root.innerHTML = `<div class="modal-bg"><div class="modal split" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-text"><div class="body"><h2 id="modal-title" class="modal-title">${esc(title)}</h2><p id="modal-text">${esc(text)}</p></div>
       <div class="actions"><button data-a="0">Cancel</button><button class="${danger?'danger':''}" data-a="1">${esc(ok)}</button></div></div></div>`;
-    root.querySelector('[data-a="1"]').focus();
-    root.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { root.innerHTML = ''; res(b.dataset.a === '1'); });
-    root.querySelector('.modal-bg').onclick = e => { if (e.target.classList.contains('modal-bg')) { root.innerHTML = ''; res(false); } };
+    const btns = [...root.querySelectorAll('[data-a]')];
+    const close = yes => { document.removeEventListener('keydown', onKey, true); root.innerHTML = ''; if (back && back.focus) back.focus(); res(yes); };
+    const onKey = e => {
+      if (e.key === 'Escape') { e.preventDefault(); close(false); }
+      else if (e.key === 'Tab') { e.preventDefault(); btns[(btns.indexOf(document.activeElement) + 1) % btns.length].focus(); }
+    };
+    document.addEventListener('keydown', onKey, true);
+    btns[0].focus();  // always start on Cancel, so Enter never confirms by accident
+    btns.forEach(b => b.onclick = () => close(b.dataset.a === '1'));
+    root.querySelector('.modal-bg').onclick = e => { if (e.target.classList.contains('modal-bg')) close(false); };
   });
 }
 function lightbox(src) {
@@ -587,7 +655,13 @@ async function go(view) {
 /* =====================================================================
    CHATS
    ===================================================================== */
-const CHAT_FILTERS = [['all','All'], ['pending','Needs reply'], ['nophone','No phone'], ['noss','No payment']];
+const CHAT_FILTERS = [['all','All'], ['pending','Needs reply'], ['nophone','No phone yet'], ['noss','No payment yet']];
+const PAY_LOOK = {
+  'Pending Verification': {cls:'warn', label:'Payment to check'},
+  'Verified':             {cls:'ok',   label:'Payment verified'},
+  'Rejected':             {cls:'bad',  label:'Payment rejected'},
+};
+const payLook = p => PAY_LOOK[p.status] || PAY_LOOK['Pending Verification'];
 async function loadChats() {
   try { S.chats = await api('/api/chats'); } catch (e) { return; }
   renderNav(); renderChatList();
@@ -603,20 +677,30 @@ function filteredChats() {
   });
 }
 function renderChatList() {
-  $('chat-filters').innerHTML = CHAT_FILTERS.map(([k, l]) => `<button class="${S.chatFilter===k?'on':''}" onclick="S.chatFilter='${k}';renderChatList()">${l}</button>`).join('');
+  $('chat-filters').innerHTML = CHAT_FILTERS.map(([k, l]) => `<button class="${S.chatFilter===k?'on':''}" aria-pressed="${S.chatFilter===k}" onclick="S.chatFilter='${k}';renderChatList()">${l}</button>`).join('');
   const list = filteredChats();
   if (!list.length) { $('chat-list').innerHTML = `<div class="empty"><div class="big">${icon('chat')}</div><b>No chats here</b><span>${S.chats.length ? 'Try another filter.' : 'When customers message the bot, they show up here.'}</span></div>`; return; }
   $('chat-list').innerHTML = list.map(c => `
-    <div class="chat-item ${S.openChat===c.user_id?'on':''}" onclick="openChat(${c.user_id})">
-      <div class="avatar">${esc(initials(c.first_name))}</div>
-      <div class="grow">
-        <div class="row"><span class="name truncate grow">${esc(c.first_name)}</span><span class="time">${timeAgo(c.last_at) || esc(c.last_time)}</span></div>
-        <div class="row" style="margin-top:2px"><span class="last truncate grow">${esc(c.last_message)}</span>${c.is_pending ? '<span class="dot" title="Needs reply"></span>' : ''}</div>
-        <div class="row" style="margin-top:5px;gap:5px">${c.phone_number ? `<span class="badge">+${esc(c.phone_number.replace(/^\+/,''))}</span>` : '<span class="badge warn">No phone yet</span>'}${c.has_screenshot ? '<span class="badge ok">Screenshot</span>' : ''}</div>
-      </div>
-    </div>`).join('');
+    <button type="button" class="chat-item ${S.openChat===c.user_id?'on':''}" data-id="${c.user_id}" aria-current="${S.openChat===c.user_id}" onclick="openChat(${c.user_id})">
+      <span class="avatar" aria-hidden="true">${esc(initials(c.first_name))}</span>
+      <span class="grow" style="display:block">
+        <span class="row"><span class="name truncate grow">${esc(c.first_name)}</span><span class="time">${timeAgo(c.last_at) || esc((c.last_time || '').replace(/^0(\d)/, '$1'))}</span></span>
+        <span class="row" style="margin-top:2px"><span class="last truncate grow">${esc(c.last_message)}</span>${c.is_pending ? '<span class="dot" role="img" aria-label="Needs reply"></span>' : ''}</span>
+        <span class="row" style="margin-top:5px;gap:5px;flex-wrap:wrap">${c.phone_number ? `<span class="badge">+${esc(c.phone_number.replace(/^\+/,''))}</span>` : '<span class="badge warn">No phone yet</span>'}${c.payment ? `<span class="badge ${payLook(c.payment).cls}">${payLook(c.payment).label}</span>` : ''}</span>
+      </span>
+    </button>`).join('');
+}
+/* Up/Down arrows move between chats in the list */
+function chatListKey(e) {
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+  const items = [...document.querySelectorAll('#chat-list .chat-item')];
+  const i = items.indexOf(document.activeElement); if (i < 0) return;
+  e.preventDefault();
+  const next = items[Math.max(0, Math.min(items.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)))];
+  next.focus();
 }
 async function openChat(id) {
+  if (S.openChat !== id) S.pendingSaved = null;
   S.openChat = id; S.chatFile = null; S.messages = [];
   $('inbox').classList.add('open');
   renderChatList(); renderConvo();
@@ -644,10 +728,34 @@ function renderConvo(scroll) {
     if (day && day !== lastDay) { sep = `<div class="day-sep">${day}</div>`; lastDay = day; }
     const t = clock(m.ts, m.timestamp);
     if (m.sender === 'customer') return sep + `<div class="bubble b-in">${linkify(m.text)}<div class="meta">${t}</div></div>`;
-    if (m.sender === 'bot') return sep + `<div class="bubble b-bot"><div class="b-label">🤖 Bot${m.rule_name ? ' · ' + esc(m.rule_name) : ''}</div>${linkify(m.text)}<div class="meta">${t}</div></div>`;
-    return sep + `<div class="bubble b-agent"><div class="b-label">${m.rule_name ? '📌 ' + esc(m.rule_name) : 'Team'}</div>${linkify(m.text)}<div class="meta">${t}</div></div>`;
+    if (m.sender === 'bot') return sep + `<div class="bubble b-bot"><div class="b-label">Bot${m.rule_name ? ' · ' + esc(m.rule_name) : ''}</div>${linkify(m.text)}<div class="meta">${t}</div></div>`;
+    if (m.rule_name) return sep + `<div class="bubble b-agent saved"><div class="b-label">${icon('bookmark')}Saved reply · ${esc(m.rule_name)}</div>${linkify(m.text)}<div class="meta">${t}</div></div>`;
+    return sep + `<div class="bubble b-agent"><div class="b-label">Team</div>${linkify(m.text)}<div class="meta">${t}</div></div>`;
   }).join('');
   const saved = S.bot.filter(m => m.kind === 'saved' && m.is_active);
+  const pending = S.pendingSaved && saved.find(m => m.id === S.pendingSaved);
+  const pay = c.payment;
+  const payStrip = pay ? `
+    <div class="pay-strip">
+      <button class="thumb-btn" onclick="lightbox('${pay.image_url}')" aria-label="View payment screenshot"><img src="${pay.image_url}" alt="" loading="lazy" onerror="this.remove()"></button>
+      <div class="grow"><span class="badge ${payLook(pay).cls}">${payLook(pay).label}</span>
+        <span class="muted hide-m" style="margin-left:6px">Latest screenshot from ${esc(c.first_name)}</span></div>
+      ${pay.status === 'Pending Verification' ? `
+        <button class="btn small" onclick="setChatPay(${pay.id}, 'Rejected')">Reject</button>
+        <button class="btn small primary" onclick="setChatPay(${pay.id}, 'Verified')">${icon('check','sm')}Mark verified</button>`
+      : `<button class="btn small ghost" onclick="setChatPay(${pay.id}, 'Pending Verification')">Check again</button>`}
+    </div>` : '';
+  const savedPreview = pending ? `
+    <div class="saved-preview" role="region" aria-label="Saved reply ready to send">
+      <div class="sp-head">${icon('bookmark','sm')}<b style="color:var(--text)">${esc(pending.name)}</b><span>· check it, then send</span></div>
+      <div class="sp-text">${linkify(fillFor(c, pending.text)) || '<i>Picture only</i>'}</div>
+      ${pending.media || (pending.buttons || []).length ? `<div class="hint">${[pending.media ? 'a picture' : '', (pending.buttons || []).length ? `${pending.buttons.length} link button${pending.buttons.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' and ')} will be sent with it.</div>` : ''}
+      <div class="sp-actions">
+        <button class="btn small ghost" onclick="S.pendingSaved=null;renderConvo(false)">Cancel</button>
+        ${pending.media || (pending.buttons || []).length ? '' : `<button class="btn small" onclick="editSaved(${pending.id})">${icon('pen','sm')}Edit first</button>`}
+        <button class="btn small primary" id="send-saved-btn" onclick="sendSaved(${pending.id})">${icon('send','sm')}Send to ${esc(c.first_name)}</button>
+      </div>
+    </div>` : '';
   $('convo').innerHTML = `
     <div class="convo-head">
       <button class="btn icon ghost show-m" onclick="closeChat()" aria-label="Back">${icon('back')}</button>
@@ -657,11 +765,13 @@ function renderConvo(scroll) {
         ${c.bot_paused_minutes
           ? `<span class="who-status paused"><span class="truncate">Your team is talking · bot paused for ${fmtMin(c.bot_paused_minutes)}</span></span>`
           : '<span class="who-status"><span class="truncate">Bot is answering</span></span>'}</div>
-      ${c.is_pending ? `<button class="btn small" onclick="markDone(${c.user_id})">${icon('check','sm')}<span class="hide-m">Mark as done</span></button>` : '<span class="badge ok hide-m">Answered</span>'}
+      ${c.is_pending ? `<button class="btn small" onclick="markDone(${c.user_id})" aria-label="Mark as done">${icon('check','sm')}<span class="hide-m">Mark as done</span></button>` : '<span class="badge ok">Answered</span>'}
     </div>
+    ${payStrip}
     <div class="msgs scroll" id="msgs">${bubbles || '<div class="empty">No messages yet.</div>'}</div>
     <div class="composer">
-      ${saved.length ? `<div class="saved-row">${saved.map(m => `<button class="chip" onclick="sendSaved(${m.id})" title="${esc(m.text)}">📌 ${esc(m.name)}</button>`).join('')}</div>` : ''}
+      ${savedPreview}
+      ${saved.length ? `<div class="saved-row" aria-label="Saved replies">${saved.map(m => `<button class="chip ${S.pendingSaved===m.id?'on':''}" aria-pressed="${S.pendingSaved===m.id}" onclick="pickSaved(${m.id})">${esc(m.name)}</button>`).join('')}</div>` : ''}
       ${S.chatFile ? `<div class="attach-pill">${icon('image','sm')}<span class="truncate">${esc(S.chatFile.name)}</span><button class="btn small ghost" onclick="S.chatFile=null;renderConvo()">${icon('x','sm')}</button></div>` : ''}
       <div class="compose-box">
         <button class="btn icon" onclick="attachChat()" aria-label="Attach photo">${icon('clip')}</button>
@@ -671,6 +781,8 @@ function renderConvo(scroll) {
     </div>`;
   $('reply-text').value = draftText;
   const box = $('msgs'); if (scroll !== false) box.scrollTop = box.scrollHeight;
+  const row = document.querySelector('.saved-row');
+  if (row) { const hint = () => row.classList.toggle('more', row.scrollLeft + row.clientWidth < row.scrollWidth - 4); row.onscroll = hint; hint(); }
 }
 async function attachChat() { const f = await pickFile('image/*'); if (f) { S.chatFile = f; renderConvo(); } }
 async function sendReply() {
@@ -685,10 +797,37 @@ async function sendReply() {
     await loadChats();
   } catch (e) { fail(e); } finally { const b = $('send-btn'); if (b) b.disabled = false; }
 }
+/* Saved replies never send on one tap: the chip opens a preview to check first. */
+const fillFor = (c, t) => (t || '').replace(/[\[{]\s*name\s*[\]}]/gi, c.first_name || 'there')
+  .replace(/[\[{]\s*phone\s*[\]}]/gi, c.phone_number ? '+' + c.phone_number.replace(/^\+/, '') : '');
+function pickSaved(id) {
+  S.pendingSaved = S.pendingSaved === id ? null : id;
+  renderConvo(false);
+  if (S.pendingSaved) setTimeout(() => { const b = document.querySelector('.saved-preview .sp-actions .btn'); if (b) b.focus(); }, 0);
+}
+function editSaved(id) {
+  const c = S.chats.find(x => x.user_id === S.openChat), m = S.bot.find(x => x.id === id);
+  S.pendingSaved = null; renderConvo(false);
+  const t = $('reply-text'); t.value = fillFor(c, m.text); t.focus();
+  t.style.height = '40px'; t.style.height = t.scrollHeight + 'px';
+}
 async function sendSaved(id) {
   const m = S.bot.find(x => x.id === id);
-  try { await api(`/api/chats/${S.openChat}/send-saved`, {method:'POST', body:{message_id:id}}); toast(`Sent “${m.name}”`); loadChats(); }
-  catch (e) { fail(e); }
+  const btn = $('send-saved-btn'); if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+  try {
+    await api(`/api/chats/${S.openChat}/send-saved`, {method:'POST', body:{message_id:id}});
+    S.pendingSaved = null; toast(`Sent “${m.name}”`); loadChats();
+  } catch (e) { fail(e); if (btn) { btn.disabled = false; renderConvo(false); } }
+}
+async function setChatPay(id, status) {
+  const c = S.chats.find(x => x.payment && x.payment.id === id); const before = c ? c.payment.status : null;
+  try {
+    await api(`/api/vault/${id}`, {method:'PUT', body:{status}});
+    if (c) c.payment.status = status;
+    renderChatList(); renderConvo(false);
+    const said = {Verified: 'Payment marked verified', Rejected: 'Payment marked rejected', 'Pending Verification': 'Payment moved back to “to check”'}[status];
+    toast(said, before ? {action: 'Undo', onAction: () => setChatPay(id, before)} : {});
+  } catch (e) { fail(e); }
 }
 async function markDone(id) { await api(`/api/chats/${id}/read`, {method:'POST'}).catch(fail); loadChats(); }
 
@@ -699,12 +838,12 @@ async function loadBot(keepSide) {
   try { [S.bot, S.settings] = await Promise.all([api('/api/bot-messages'), api('/api/settings')]); } catch (e) { return; }
   renderSteps(); renderSettings();
   if (!keepSide) renderSide();
-  loadBotName();
+  renderBotName(); loadBotName();
 }
 async function loadBotName() {
   try { const r = await api('/api/bot-name'); S.botName = r.name; S.botNameError = ''; }
   catch (e) { S.botName = null; S.botNameError = e.message; }
-  renderSettings();
+  renderBotName();
 }
 async function saveBotName() {
   const input = $('bot-name'), name = input.value.trim().replace(/\s+/g, ' ');
@@ -716,7 +855,7 @@ async function saveBotName() {
     S.botName = r.name; S.botNameError = '';
     toast(`Customers now see “${r.name}”`);
   } catch (e) { fail(e); }
-  finally { renderSettings(); }
+  finally { renderBotName(); }
 }
 function mcard(m, label) {
   return mcardOnly(m, label) + chainOf(m.id);
@@ -729,28 +868,50 @@ function chainOf(id, depth = 0) {
 function mcardOnly(m, label, isAfter) {
   const on = S.sel === m.id;
   if (isAfter) label = m.skip_if_replied ? 'Skipped if the customer replies first' : 'Always sent';
+  const clashes = m.kind === 'keywords' && m.is_active ? sharedWords(m) : [];
   return `<div class="mcard ${on?'on':''} ${m.is_active?'':'off'}" onclick="selectMessage(${m.id})">
-    <div class="ico">${m.media ? '🖼️' : KIND[m.kind].ico}</div>
+    <div class="ico">${icon(m.media ? 'image' : KIND[m.kind].ico)}</div>
     <div class="grow">
-      ${isAfter ? `<div class="after-tag">↪️ ${esc(delayLabel(m.delay_minutes))}</div>` : ''}<div class="title truncate">${esc(m.name)}</div>
+      ${isAfter ? `<div class="after-tag">${icon('follow','sm')} ${esc(delayLabel(m.delay_minutes))}</div>` : ''}<div class="title truncate">${esc(m.name)}</div>
       <div class="when">${esc(label || m.when)}</div>
       <div class="preview">${esc(fillSample(m.text).replace(/\s*\n+\s*/g, ' · ')) || '<i>Picture only</i>'}</div>
-      <button class="after-link" onclick="event.stopPropagation();newAfter(${m.id})">${icon('plus','sm')} Add a message after this</button>
+      ${clashes.map(c => `<div class="kw-clash">${icon('help','sm')}<span>“${esc(c.word)}” is also used by “${esc(c.other)}”. The longer matching word wins, so check which answer you want.</span></div>`).join('')}
+      ${m.kind === 'saved' ? '' : `<button class="after-link" onclick="event.stopPropagation();newAfter(${m.id})">${icon('plus','sm')} Add a message after this</button>`}
     </div>
     <div class="right">
       <div class="row" style="gap:6px">
         <button class="edit-pen" onclick="event.stopPropagation();selectMessage(${m.id})" title="Edit" aria-label="Edit ${esc(m.name)}">${icon('pen')}</button>
-        <button class="switch ${m.is_active?'on':''}" onclick="event.stopPropagation();toggleActive(${m.id})" title="${m.is_active?'On — click to switch off':'Off — click to switch on'}" aria-label="On/off"></button>
+        <button class="switch ${m.is_active?'on':''}" role="switch" aria-checked="${m.is_active?'true':'false'}" onclick="event.stopPropagation();toggleActive(${m.id})" title="${m.is_active?'On: click to switch off':'Off: click to switch on'}" aria-label="Send “${esc(m.name)}”"></button>
       </div>
-      ${m.use_count ? `<span class="faint" style="font-size:11.5px">Sent ${m.use_count}×</span>` : ''}
+      ${m.use_count ? `<span class="faint num" style="font-size:11.5px">Sent ${m.use_count}×</span>` : ''}
     </div>
   </div>`;
 }
+/* Words this keyword answer shares with another switched-on keyword answer */
+function sharedWords(m) {
+  const mine = new Set((m.keywords || []).map(normalize)); const out = [];
+  S.bot.filter(x => x.kind === 'keywords' && x.is_active && x.id !== m.id).forEach(x =>
+    (x.keywords || []).forEach(k => { if (mine.has(normalize(k)) && !out.some(o => o.word === normalize(k))) out.push({word: normalize(k), other: x.name}); }));
+  return out;
+}
+const BOT_TABS = [['flow', 'Conversation'], ['saved', 'Saved replies'], ['settings', 'Settings']];
+function renderBotTabs() {
+  const counts = {saved: S.bot.filter(m => m.kind === 'saved').length};
+  $('bot-tabs').innerHTML = BOT_TABS.map(([k, l]) => `<button role="tab" id="tabbtn-${k}" aria-controls="tab-${k}" aria-selected="${S.botTab===k}" tabindex="${S.botTab===k?0:-1}" class="${S.botTab===k?'on':''}" onclick="setBotTab('${k}')" onkeydown="tabKey(event)">${l}${counts[k] ? ` <span class="num muted">${counts[k]}</span>` : ''}</button>`).join('');
+  BOT_TABS.forEach(([k]) => { $('tab-' + k).hidden = S.botTab !== k; });
+}
+function setBotTab(k, focus) { S.botTab = k; renderBotTabs(); if (focus) $('tabbtn-' + k).focus(); }
+function tabKey(e) {
+  const i = BOT_TABS.findIndex(([k]) => k === S.botTab);
+  const step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+  if (step) { e.preventDefault(); setBotTab(BOT_TABS[(i + step + BOT_TABS.length) % BOT_TABS.length][0], true); }
+}
 function renderSteps() {
+  renderBotTabs();
   const by = k => S.bot.filter(m => m.kind === k);
   const steps = [
-    {t:'Customer starts the bot', sub:'They tap Start or send /start', cards: by('start').map(m => mcard(m, 'Sent first, with the “Share Mobile Number” button'))},
-    {t:'Customer shares their number', sub:'A topic is created in your Telegram group', cards: by('contact').map(m => mcard(m))},
+    {t:'Customer starts the bot', sub:'They tap Start in Telegram', cards: by('start').map(m => mcard(m, 'Sent first, with the “Share Mobile Number” button'))},
+    {t:'Customer shares their number', sub:'Their chat appears in your team’s Telegram group', cards: by('contact').map(m => mcard(m))},
     {t:'Customer asks something', sub:'The bot looks for these words', cards: [
         ...by('keywords').map(m => mcard(m)),
         `<button class="add-link" onclick="newMessage('keywords')">${icon('plus','sm')} Add an answer</button>`,
@@ -769,29 +930,45 @@ function renderSteps() {
 function renderSettings() {
   const h = +S.settings.handoff_minutes || 0;
   const opts = [0, 5, 10, 15, 30, 60].map(n => `<option value="${n}" ${n===h?'selected':''}>${n ? fmtMin(n) : "Don't wait"}</option>`).join('');
-  const typed = $('bot-name') ? $('bot-name').value : null;
-  const nameVal = typed !== null && typed !== S.botName && document.activeElement === $('bot-name') ? typed : (S.botName || '');
   $('settings-card').innerHTML = `
-    <div class="srow" style="flex-wrap:wrap"><div class="grow" style="min-width:200px"><b>Bot's name in Telegram</b><div class="hint" style="margin-top:2px">${
-        S.botNameError ? esc(S.botNameError) : S.botName === undefined ? 'Loading…' : 'Customers see this at the top of their chat. Changes show up right away.'}</div></div>
-      <form class="row" style="gap:6px;flex:1 1 260px" onsubmit="event.preventDefault();saveBotName()">
-        <input id="bot-name" class="input" aria-label="Bot's name in Telegram" maxlength="64" autocomplete="off" placeholder="e.g. Play 246 Support" value="${esc(nameVal)}" ${S.botName === null ? 'disabled' : ''}>
-        <button id="bot-name-save" class="btn primary" ${S.botName === null || S.botName === undefined ? 'disabled' : ''}>Save</button></form></div>
     <div class="srow"><div class="grow"><b>When your team replies, the bot waits</b><div class="hint" style="margin-top:2px">So the bot doesn't talk over a person.</div></div>
       <select class="select" style="width:auto" onchange="saveSetting('handoff_minutes', +this.value)">${opts}</select></div>
     <div class="srow"><div class="grow"><b>Alert the team when the bot can't answer</b><div class="hint" style="margin-top:2px">Posts a note in the customer's Telegram topic.</div></div>
-      <button class="switch ${S.settings.alert_team==='1'?'on':''}" onclick="saveSetting('alert_team', ${S.settings.alert_team==='1'?'false':'true'})" aria-label="Alert team"></button></div>`;
+      <button class="switch ${S.settings.alert_team==='1'?'on':''}" role="switch" aria-checked="${S.settings.alert_team==='1'}" onclick="saveSetting('alert_team', ${S.settings.alert_team==='1'?'false':'true'})" aria-label="Alert the team when the bot can't answer"></button></div>`;
+}
+function renderBotName() {
+  const el = $('bot-name-card'); if (!el) return;
+  const typed = $('bot-name') ? $('bot-name').value : null;
+  const nameVal = typed !== null && typed !== S.botName && document.activeElement === $('bot-name') ? typed : (S.botName || '');
+  const ready = typeof S.botName === 'string';
+  el.innerHTML = `
+    <div class="ico">${icon('bot')}</div>
+    <div class="grow" style="min-width:200px"><b>Bot's name in Telegram</b><div class="hint" style="margin-top:2px">${
+      S.botNameError ? esc(S.botNameError) : ready ? 'Customers see this name at the top of their chat. Changes show up right away.' : 'Loading the current name…'}</div></div>
+    <form class="row" style="gap:6px;flex:1 1 280px" onsubmit="event.preventDefault();saveBotName()">
+      <input id="bot-name" class="input" aria-label="Bot's name in Telegram" maxlength="64" autocomplete="off" placeholder="e.g. Play 246 Support" value="${esc(nameVal)}" ${ready ? '' : 'disabled'}>
+      <button id="bot-name-save" class="btn primary" ${ready ? '' : 'disabled'}>Save name</button></form>`;
 }
 async function saveSetting(k, v) {
   try { S.settings = await api('/api/settings', {method:'PUT', body:{[k]: v}}); renderSettings(); toast('Saved'); } catch (e) { fail(e); }
 }
-async function toggleActive(id) {
+const CORE_OFF_WARNING = {
+  start:    'New customers who press Start will get no welcome and no “Share Mobile Number” button.',
+  contact:  'Customers who share their number will get no links back.',
+  photo:    'Customers who send a payment screenshot won’t be told it was received.',
+  fallback: 'Customers whose message the bot doesn’t understand will get no reply until your team answers.',
+};
+async function toggleActive(id, undoing) {
   const m = S.bot.find(x => x.id === id);
+  const turningOff = m.is_active;
+  if (turningOff && !undoing && m.is_core && CORE_OFF_WARNING[m.kind] &&
+      !(await confirmBox({title: `Stop sending “${m.name}”?`, text: CORE_OFF_WARNING[m.kind], ok: 'Turn it off', danger: true}))) return;
   try {
     const u = await api(`/api/bot-messages/${id}`, {method:'PUT', body:{is_active: !m.is_active}});
     Object.assign(m, u); renderSteps();
     if (S.draft && S.draft.id === id) { S.draft.is_active = u.is_active; S.original.is_active = u.is_active; renderSide(); }
-    toast(u.is_active ? `“${u.name}” is on` : `“${u.name}” is off — the bot won't send it`);
+    if (undoing) return toast(u.is_active ? `“${u.name}” is back on` : `“${u.name}” is off again`);
+    toast(u.is_active ? `“${u.name}” is on` : `“${u.name}” is off. The bot won’t send it.`, {action: 'Undo', onAction: () => toggleActive(id, true)});
   } catch (e) { fail(e); }
 }
 
@@ -853,13 +1030,13 @@ function renderEditor() {
   let body = '';
   if (!d.kind) {
     body = `<div class="field-title">When should the bot send this?</div>` +
-      ['keywords', 'quiet', 'saved'].map(k => `<button class="choice" onclick="S.draft.kind='${k}';S.original.snap=snapshot(S.draft);renderEditor()"><span style="font-size:20px">${KIND[k].ico}</span><span><b>${KIND[k].short}</b><small>${KIND[k].desc}</small></span></button>`).join('') +
+      ['keywords', 'quiet', 'saved'].map(k => `<button class="choice" onclick="S.draft.kind='${k}';S.original.snap=snapshot(S.draft);renderEditor()"><span class="muted" style="display:grid">${icon(KIND[k].ico)}</span><span><b>${KIND[k].short}</b><small>${KIND[k].desc}</small></span></button>`).join('') +
       `<p class="hint">To send something <b>after</b> a message (e.g. 5 minutes after Site links), click <b>+ Add a message after this</b> under that message on the left.</p>
        <p class="hint">The welcome, site links, screenshot and “didn't understand” messages are already in your flow — click them on the left to edit.</p>`;
     return paintPanel('New message', body, `<button class="btn" onclick="closeEditor()">Cancel</button>`);
   }
   const conflicts = keywordConflicts();
-  body += `<div class="when-box"><span style="font-size:18px">${KIND[d.kind].ico}</span><span class="grow">${esc(whenText())}</span>
+  body += `<div class="when-box"><span class="muted" style="display:grid">${icon(KIND[d.kind].ico)}</span><span class="grow">${esc(whenText())}</span>
            ${d.id ? `<button class="switch ${d.is_active?'on':''}" onclick="toggleActive(${d.id})" title="On/off"></button>` : ''}</div>`;
   body += `<label class="field"><span>Name</span><input class="input" value="${esc(d.name)}" placeholder="${esc(defaultName())}" oninput="S.draft.name=this.value;paintDirty()"><div class="hint">Only your team sees this.</div></label>`;
   if (d.kind === 'keywords') {
@@ -1031,9 +1208,9 @@ function renderTry() {
   }).join('');
   const body = `<p class="muted" style="margin:0 0 12px">See exactly how the bot answers. Nothing is sent to anyone.</p>
     <div class="row" style="flex-wrap:wrap;gap:6px;margin-bottom:12px">
-      <button class="chip" onclick="tryEvent('start','▶️ Starts the bot')">▶️ Starts the bot</button>
-      <button class="chip" onclick="tryEvent('contact','📱 Shares their number')">📱 Shares number</button>
-      <button class="chip" onclick="tryEvent('photo','🖼️ Sends a photo')">🖼️ Sends a photo</button></div>
+      <button class="chip" onclick="tryEvent('start','Starts the bot')">${icon('play','sm')}Starts the bot</button>
+      <button class="chip" onclick="tryEvent('contact','Shares their number')">${icon('phone','sm')}Shares number</button>
+      <button class="chip" onclick="tryEvent('photo','Sends a photo')">${icon('image','sm')}Sends a photo</button></div>
     <div class="tg-preview scroll" id="try-log" style="min-height:260px;max-height:46vh">${log || '<div class="sys-note">Type something a customer might say, like “bonus kab milega”.</div>'}</div>
     <form class="row" style="margin-top:10px" onsubmit="event.preventDefault();tryText()">
       <input id="try-input" class="input" placeholder="Type like a customer…" autocomplete="off">
@@ -1065,34 +1242,44 @@ function tryEvent(ev, label) { runTry({event: ev}, label); }
 /* =====================================================================
    PAYMENTS
    ===================================================================== */
-const PAY_STATUSES = ['Pending Verification', 'Verified', 'Rejected'];
 async function loadVault() { try { S.vault = await api('/api/vault'); } catch (e) { return; } renderVault(); }
 function renderVault() {
-  const f = [['all','All'], ['Pending Verification','Pending'], ['Verified','Verified'], ['Rejected','Rejected']];
-  $('pay-filters').innerHTML = f.map(([k,l]) => `<button class="${S.payFilter===k?'on':''}" onclick="S.payFilter='${k}';renderVault()">${l}</button>`).join('');
-  const list = S.vault.filter(v => S.payFilter === 'all' || v.status === S.payFilter);
+  const f = [['all','All'], ['Pending Verification','To check'], ['Verified','Verified'], ['Rejected','Rejected']];
+  const n = k => k === 'all' ? S.vault.length : S.vault.filter(v => v.status === k).length;
+  $('pay-filters').innerHTML = f.map(([k,l]) => `<button class="${S.payFilter===k?'on':''}" aria-pressed="${S.payFilter===k}" onclick="S.payFilter='${k}';renderVault()">${l} <span class="num">${n(k)}</span></button>`).join('');
+  const order = {'Pending Verification': 0, 'Rejected': 1, 'Verified': 2};
+  const list = S.vault.filter(v => S.payFilter === 'all' || v.status === S.payFilter)
+    .sort((a, b) => (order[a.status] ?? 0) - (order[b.status] ?? 0) || b.id - a.id);
   if (!list.length) { $('pay-grid').innerHTML = `<div class="empty card" style="grid-column:1/-1"><div class="big">${icon('receipt')}</div><b>No screenshots ${S.vault.length ? 'here' : 'yet'}</b><span>When a customer sends a photo to the bot, it appears here.</span></div>`; return; }
   $('pay-grid').innerHTML = list.map(v => {
-    const cls = v.status === 'Verified' ? 'ok' : v.status === 'Rejected' ? 'bad' : 'warn';
+    const look = payLook(v);
+    const actions = v.status === 'Pending Verification'
+      ? `<button class="btn small" onclick="setPayStatus(${v.id}, 'Rejected')">Reject</button>
+         <button class="btn small primary" onclick="setPayStatus(${v.id}, 'Verified')">${icon('check','sm')}Mark verified</button>`
+      : `<button class="btn small ghost" style="grid-column:span 2" onclick="setPayStatus(${v.id}, 'Pending Verification')">Check again</button>`;
     return `<div class="card pay-card">
-      <div class="pay-img" onclick="lightbox('${v.image_url}')"><img loading="lazy" src="${v.image_url}" alt="Screenshot" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'Preview unavailable'}))"></div>
+      <button class="pay-img" onclick="lightbox('${v.image_url}')" aria-label="View screenshot from ${esc(v.sender_name)}"><img loading="lazy" src="${v.image_url}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'Preview unavailable'}))"></button>
       <div class="pay-body">
-        <div class="row"><b class="grow truncate">${esc(v.sender_name)}</b><span class="badge ${cls}">${esc(v.status.replace(' Verification',''))}</span></div>
-        <div class="muted" style="font-size:12.5px">${v.phone_number && v.phone_number !== 'Unknown' ? '+' + esc(v.phone_number.replace(/^\+/,'')) : 'No phone'} · ${v.ts ? dayLabel(v.ts) + ' ' + clock(v.ts) : esc(v.timestamp)}</div>
-        <div class="row" style="gap:6px">
-          <select class="select grow" style="height:32px;padding:4px 8px" onchange="setPayStatus(${v.id}, this.value)">${PAY_STATUSES.map(s => `<option ${s===v.status?'selected':''} value="${s}">${s.replace(' Verification','')}</option>`).join('')}</select>
-          <button class="btn small" onclick="go('chats').then(()=>openChat(${v.user_id}))">Chat</button></div>
+        <div class="row"><b class="grow truncate">${esc(v.sender_name)}</b><span class="badge ${look.cls}">${look.label}</span></div>
+        <div class="muted" style="font-size:12.5px">${v.phone_number && v.phone_number !== 'Unknown' ? '+' + esc(v.phone_number.replace(/^\+/,'')) : 'No phone yet'} · ${v.ts ? dayLabel(v.ts) + ' ' + clock(v.ts) : esc(v.timestamp)}</div>
+        <div class="pay-actions">${actions}
+          <button class="btn small" onclick="go('chats').then(()=>openChat(${v.user_id}))" aria-label="Open chat with ${esc(v.sender_name)}">${icon('chat','sm')}</button></div>
       </div></div>`;
   }).join('');
 }
 async function setPayStatus(id, status) {
-  try { await api(`/api/vault/${id}`, {method:'PUT', body:{status}}); S.vault.find(v => v.id === id).status = status; renderVault(); toast('Status updated'); } catch (e) { fail(e); }
+  const v = S.vault.find(x => x.id === id), before = v.status;
+  try {
+    await api(`/api/vault/${id}`, {method:'PUT', body:{status}}); v.status = status; renderVault();
+    const said = {Verified: 'Payment marked verified', Rejected: 'Payment marked rejected', 'Pending Verification': 'Payment moved back to “to check”'}[status];
+    toast(said, {action: 'Undo', onAction: () => setPayStatus(id, before)});
+  } catch (e) { fail(e); renderVault(); }
 }
 
 /* =====================================================================
    BROADCAST
    ===================================================================== */
-const AUDIENCES = [['all','Everyone'], ['verified','Shared phone'], ['pending','No phone yet'], ['unpaid','No screenshot yet']];
+const AUDIENCES = [['all','Everyone'], ['verified','Shared their phone'], ['pending','No phone yet'], ['unpaid','No payment yet']];
 async function loadBroadcast() { try { S.counts = await api('/api/audience-counts'); } catch (e) { return; } renderAud(); renderBcFile(); renderBcPreview(); }
 function renderAud() {
   $('aud').innerHTML = AUDIENCES.map(([k,l]) => `<button class="${S.audience===k?'on':''}" onclick="S.audience='${k}';renderAud()"><b>${S.counts[k] ?? '–'}</b><small>${l}</small></button>`).join('');
@@ -1121,7 +1308,7 @@ async function confirmBroadcast() {
   const row = (state, label, count = '') => `<div class="p-row ${state==='done'?'done':''}">${
     state === 'done' ? `<span class="tick">${tick}</span>` : state === 'now' ? '<span class="spin" role="status" aria-label="In progress"></span>' : '<span class="p-wait" aria-hidden="true"></span>'
     }<span class="grow">${label}</span>${count ? `<span class="p-count">${count}</span>` : ''}</div>`;
-  const showProgress = rows => { $('bc-progress').innerHTML = `<div class="card section" style="margin-top:14px"><h3>Sending your broadcast</h3><div class="progress-list">${rows.join('')}</div></div>`; };
+  const showProgress = rows => { $('bc-progress').innerHTML = `<div class="card section" style="margin-top:14px"><h2>Sending your broadcast</h2><div class="progress-list">${rows.join('')}</div></div>`; };
   showProgress([...(S.bcFile ? [row('now', 'Uploading the picture')] : []), row(S.bcFile ? 'wait' : 'now', `Sending to ${people}`), row('wait', 'Noting it in each Telegram topic')]);
   try {
     const fd = new FormData(); fd.append('audience', S.audience); fd.append('text', text); if (S.bcFile) fd.append('file', S.bcFile);
@@ -1141,14 +1328,14 @@ async function loadStats() {
   const s = S.stats, rate = s.total_leads ? Math.round(100 * s.verified_leads / s.total_leads) : 0;
   const k = (label, num, sub) => `<div class="card kpi"><div class="label">${label}</div><div class="num">${num}</div><div class="sub">${sub}</div></div>`;
   $('kpis').innerHTML = k('Total customers', s.total_leads, `+${s.new_today} today`) + k('Shared their phone', s.verified_leads, `${rate}% of customers`) +
-    k('Waiting for a reply', s.pending_replies, `<a href="#" onclick="event.preventDefault();S.chatFilter='pending';go('chats')">Open chats</a>`) + k('No screenshot yet', s.unpaid, 'Shared phone, no payment');
+    k('Needs reply', s.pending_replies, `<a href="#" onclick="event.preventDefault();S.chatFilter='pending';go('chats')">Open these chats</a>`) + k('No payment yet', s.unpaid, `Shared their phone · <a href="#" onclick="event.preventDefault();S.chatFilter='noss';go('chats')">See who</a>`);
   $('bot-today').innerHTML = `<div class="srow row" style="padding:6px 0"><span class="grow">Answered automatically</span><b>${s.auto_today}</b></div>
     <div class="srow row" style="padding:6px 0"><span class="grow">Couldn't answer (team alerted)</span><b>${s.unanswered_today}</b></div>
     <p class="hint">Tip: if the bot often can't answer, open <a href="#" onclick="event.preventDefault();go('bot').then(openTry)">Bot messages → Try it</a> and add answers for common questions.</p>`;
-  const top = S.bot.filter(m => m.use_count && m.kind !== 'start').sort((a, b) => b.use_count - a.use_count).slice(0, 6);
+  const top = S.bot.filter(m => m.use_count && !['start', 'saved'].includes(m.kind)).sort((a, b) => b.use_count - a.use_count).slice(0, 6);
   const max = top[0] ? top[0].use_count : 1;
   $('top-answers').innerHTML = top.length ? top.map(m => `<div class="bar-row"><span class="truncate">${esc(m.name)}</span><div class="bar"><i style="width:${Math.max(4, 100*m.use_count/max)}%"></i></div><b style="text-align:right">${m.use_count}</b></div>`).join('')
-    : '<p class="muted">No answers sent yet.</p>';
+    : '<p class="muted">The bot hasn’t answered any questions yet. Saved replies your team sends aren’t counted here.</p>';
 }
 
 /* =====================================================================

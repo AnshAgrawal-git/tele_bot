@@ -272,6 +272,15 @@ async def main():
         for path in ("/api/stats", "/api/chats", "/api/chats/555/messages", "/api/vault", "/api/settings", "/api/audience-counts", "/api/export/leads.csv", "/health"):
             r = await c.get(path)
             check(r.status == 200, f"GET {path}")
+        chats = await (await c.get("/api/chats")).json()
+        pay = next(x for x in chats if x["user_id"] == 555)["payment"]
+        check(pay and pay["status"] == "Pending Verification" and pay["image_url"].startswith("/api/vault/"), "chat list carries the latest payment to check")
+        r = await c.put(f"/api/vault/{pay['id']}", json={"status": "Verified"})
+        chats = await (await c.get("/api/chats")).json()
+        check(next(x for x in chats if x["user_id"] == 555)["payment"]["status"] == "Verified", "verifying from Chats updates the payment")
+        r = await c.get("/fonts/ibm-plex-sans.woff2"); body = await r.read()
+        check(r.status == 200 and body[:4] == b"wOF2", "self-hosted font served")
+        r = await c.get("/fonts/..%2Fbot.py"); check(r.status == 404, "font route refuses other files")
         msgs = await (await c.get("/api/chats/555/messages")).json()
         check(any(x["rule_name"] == "Deposit help" for x in msgs), "chat history labels auto-replies")
         r = await c.put("/api/settings", json={"handoff_minutes": 5}); check((await r.json())["handoff_minutes"] == "5", "settings saved")

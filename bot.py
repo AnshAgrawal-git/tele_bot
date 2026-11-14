@@ -1794,6 +1794,18 @@ async def serve_index(request):
     return web.Response(text="CRM HTML not found", status=404)
 
 
+FONTS_DIR = os.path.join(BASE_DIR, "static", "fonts")
+
+
+async def serve_font(request):
+    """Self-hosted CRM fonts (no CDN). Only plain .woff2 file names inside static/fonts are served."""
+    name = request.match_info["name"]
+    path = os.path.join(FONTS_DIR, name)
+    if not re.fullmatch(r"[a-z0-9-]+\.woff2", name) or not os.path.isfile(path):
+        raise web.HTTPNotFound()
+    return web.FileResponse(path, headers={"Content-Type": "font/woff2", "Cache-Control": "public, max-age=31536000, immutable"})
+
+
 async def api_me(request):
     return web.json_response({"auth_required": bool(CRM_PASSWORD), "logged_in": is_logged_in(request),
                               "bot_username": "prototypetelegram247bot"})
@@ -1828,6 +1840,10 @@ async def api_chats(request):
                            FROM users ORDER BY is_pending DESC,
                                 COALESCE(last_customer_at, created_at, '') DESC, user_id DESC""")
     paid = {r["user_id"] for r in await db_all("SELECT DISTINCT user_id FROM media_vault")}
+    # Latest payment screenshot per customer, so Chats can show and verify it in place
+    latest_pay = {r["user_id"]: r for r in await db_all(
+        """SELECT v.user_id, v.id, v.utr_code FROM media_vault v
+           JOIN (SELECT user_id, MAX(id) AS id FROM media_vault GROUP BY user_id) m ON m.id = v.id""")}
     handoff = int(await get_setting("handoff_minutes") or 0)
     now = datetime.now(timezone.utc)
 
@@ -1851,6 +1867,10 @@ async def api_chats(request):
         "has_screenshot": r["user_id"] in paid,
         "has_topic": bool(r["topic_id"]),
         "bot_paused_minutes": paused_minutes(r["last_agent_at"]),
+        "payment": ({"id": latest_pay[r["user_id"]]["id"],
+                     "status": latest_pay[r["user_id"]]["utr_code"] or "Pending Verification",
+                     "image_url": f"/api/vault/{latest_pay[r['user_id']]['id']}/image"}
+                    if r["user_id"] in latest_pay else None),
     } for r in rows])
 
 
@@ -2286,6 +2306,7 @@ async def health_check(request):
 r = app.router
 r.add_get("/health", health_check)
 r.add_get("/", serve_index)
+r.add_get("/fonts/{name}", serve_font)
 r.add_get("/api/me", api_me)
 r.add_post("/api/login", api_login)
 r.add_post("/api/logout", api_logout)
