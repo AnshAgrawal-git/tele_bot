@@ -1,14 +1,33 @@
+# Render Blueprint for the Play 246 Telegram bot + CRM.
+# Paid plan with a persistent disk, so leads.db survives deploys and restarts.
 services:
   - type: web
     name: play246-bot
     runtime: python
+    plan: starter            # paid: never sleeps; needed for a persistent disk
+    region: singapore        # closest Render region to India
     buildCommand: pip install -r requirements.txt
     startCommand: python bot.py
+    healthCheckPath: /health
+    numInstances: 1          # the bot uses Telegram polling: only ONE copy may run
+    disk:
+      name: data
+      mountPath: /var/data   # survives deploys and restarts; Render snapshots it daily
+      sizeGB: 1
     envVars:
-      - key: BOT_TOKEN
+      - key: BOT_TOKEN       # from @BotFather; set in the dashboard, never commit it
         sync: false
-      - key: ADMIN_GROUP_ID
+      - key: ADMIN_GROUP_ID  # -1004349789648
         sync: false
+      - key: CRM_PASSWORD    # login password for the web CRM; leave empty = anyone with the link can open it
+        sync: false
+      - key: CRM_URL         # this service's public URL, used by the bot's "Open CRM" button
+        sync: false
+      - key: DB_PATH         # the SQLite file lives on the persistent disk
+        value: /var/data/leads.db
       - key: PORT
         value: 10000
-    healthCheckPath: /health
+      - key: PYTHON_VERSION
+        value: 3.10.7
+      - key: RUN_BOT
+        value: "1"

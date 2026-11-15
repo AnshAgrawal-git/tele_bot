@@ -9,7 +9,7 @@ This repository contains a unified **Telegram Bot** and **Web CRM Dashboard** bu
 - **Bot Username**: `@prototypetelegram247bot`
 - **Admin Group**: `Play 246 Admin Inbox` (`-1004349789648`)
 
-> ⚠️ **Render Free Tier = temporary disk.** `leads.db` is wiped on every deploy/restart. The bot re-seeds its default messages on start, so it always works, but leads/chats/edits are lost. Plan: move to Render paid + persistent disk and set `DB_PATH=/var/data/leads.db`.
+> ℹ️ **Render paid plan + persistent disk.** `render.yaml` (Blueprint) sets `plan: starter`, a 1 GB disk at `/var/data` and `DB_PATH=/var/data/leads.db`, so leads, chats and edits survive deploys and restarts (Render snapshots the disk daily). Deploys cause ~30–60 s downtime (no zero-downtime deploys with a disk); Telegram queues messages meanwhile. Only one instance may run (polling). `BOT_TOKEN`, `ADMIN_GROUP_ID`, `CRM_PASSWORD` and `CRM_URL` are set in the Render dashboard. The service is moving to a new Render account; the URLs above may change.
 
 ---
 
