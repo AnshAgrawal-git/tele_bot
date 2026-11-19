@@ -59,12 +59,31 @@ if sys.platform == "win32":
 # ==============================================================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+
+def _load_dotenv(path):
+    """Read KEY=VALUE lines from a local .env (Render uses real env vars instead)."""
+    if not os.path.exists(path):
+        return
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, value = line.split("=", 1)
+                os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+_load_dotenv(os.path.join(BASE_DIR, ".env"))
+
 # TODO: rotate this token in @BotFather and remove the fallback once
 # BOT_TOKEN is confirmed in Render's environment variables.
 BOT_TOKEN = os.getenv("BOT_TOKEN", "9011031953:AAEBkNzzKEwc8gDeYSyidt0ff97cFo9aEkc")
 ADMIN_GROUP_ID = int(os.getenv("ADMIN_GROUP_ID", "-1004349789648"))
 WEB_PORT = int(os.getenv("PORT", 8080))
-# Point this at a persistent disk later (e.g. /var/data/leads.db on Render paid).
+# Supabase / Postgres connection string. When set, ALL data lives in Postgres and
+# survives deploys/restarts. When empty, the local SQLite file (DB_PATH) is used.
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+USE_PG = DATABASE_URL.startswith(("postgres://", "postgresql://"))
+# Only used without DATABASE_URL (local testing).
 DB_PATH = os.getenv("DB_PATH", os.path.join(BASE_DIR, "leads.db"))
 CRM_HTML_PATH = os.path.join(BASE_DIR, "crm.html")
 CRM_URL = os.getenv("CRM_URL", "https://play246-crm.onrender.com")
@@ -215,7 +234,48 @@ def when_sentence(m: dict, parent_name: str = None) -> str:
 # ==============================================================================
 # DATABASE
 # ==============================================================================
+# All SQL is written once in SQLite style ("?" placeholders). With DATABASE_URL set,
+# it is translated for Postgres (asyncpg) on the fly, so both backends share one code path.
+_ID_TABLES = {"messages", "flow_steps", "media_vault", "bot_messages", "media", "auto_log", "scheduled_sends"}
+_pg_pool = None
+_pg_pool_lock = asyncio.Lock()
+
+
+def _pg_sql(sql: str) -> str:
+    """Turn ? placeholders into $1, $2… (ignoring any ? inside quoted strings)."""
+    out, n, in_str = [], 0, False
+    for ch in sql:
+        if ch == "'":
+            in_str = not in_str
+        if ch == "?" and not in_str:
+            n += 1
+            out.append(f"${n}")
+        else:
+            out.append(ch)
+    return "".join(out)
+
+
+def _pg_ddl(sql: str) -> str:
+    return (sql.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "BIGSERIAL PRIMARY KEY")
+               .replace("BLOB", "BYTEA").replace("INTEGER", "BIGINT"))
+
+
+async def _pg():
+    global _pg_pool
+    if _pg_pool is None:
+        async with _pg_pool_lock:
+            if _pg_pool is None:
+                import asyncpg
+                # statement_cache_size=0 keeps it compatible with Supabase's poolers.
+                _pg_pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=5,
+                                                     statement_cache_size=0, command_timeout=30)
+    return _pg_pool
+
+
 async def db_all(sql: str, args=()) -> list:
+    if USE_PG:
+        rows = await (await _pg()).fetch(_pg_sql(sql), *args)
+        return [dict(r) for r in rows]
     async with aiosqlite.connect(DB_PATH, timeout=15) as db:
         db.row_factory = aiosqlite.Row
         async with db.execute(sql, args) as cur:
@@ -228,18 +288,36 @@ async def db_one(sql: str, args=()):
 
 
 async def db_run(sql: str, args=()) -> int:
+    """Run INSERT/UPDATE/DELETE. For INSERTs into tables with an id column, returns the new id."""
+    if USE_PG:
+        pool = await _pg()
+        m = re.match(r"\s*INSERT\s+INTO\s+(\w+)", sql, re.I)
+        if m and m.group(1).lower() in _ID_TABLES and "RETURNING" not in sql.upper():
+            return await pool.fetchval(_pg_sql(sql) + " RETURNING id", *args)
+        await pool.execute(_pg_sql(sql), *args)
+        return 0
     async with aiosqlite.connect(DB_PATH, timeout=15) as db:
         cur = await db.execute(sql, args)
         await db.commit()
         return cur.lastrowid
 
 
-async def _add_columns(db, table: str, cols: list):
-    async with db.execute(f"PRAGMA table_info({table})") as c:
-        existing = {r[1] for r in await c.fetchall()}
+async def db_ddl(sql: str):
+    if USE_PG:
+        await (await _pg()).execute(_pg_ddl(sql))
+    else:
+        await db_run(sql)
+
+
+async def _add_columns(table: str, cols: list):
+    if USE_PG:
+        for name, definition in cols:
+            await db_ddl(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {name} {definition}")
+        return
+    existing = {r["name"] for r in await db_all(f"PRAGMA table_info({table})")}
     for name, definition in cols:
         if name not in existing:
-            await db.execute(f"ALTER TABLE {table} ADD COLUMN {name} {definition}")
+            await db_run(f"ALTER TABLE {table} ADD COLUMN {name} {definition}")
 
 
 DEFAULT_WELCOME = (
@@ -314,8 +392,8 @@ def default_messages(legacy: dict) -> list:
 
 
 async def init_db():
-    async with aiosqlite.connect(DB_PATH, timeout=15) as db:
-        await db.execute("""
+    if True:
+        await db_ddl("""
             CREATE TABLE IF NOT EXISTS users (
                 user_id INTEGER PRIMARY KEY,
                 first_name TEXT,
@@ -326,7 +404,7 @@ async def init_db():
                 last_message TEXT,
                 last_time TEXT
             )""")
-        await db.execute("""
+        await db_ddl("""
             CREATE TABLE IF NOT EXISTS messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER,
@@ -335,7 +413,7 @@ async def init_db():
                 media_type TEXT,
                 timestamp TEXT
             )""")
-        await db.execute("""
+        await db_ddl("""
             CREATE TABLE IF NOT EXISTS flow_steps (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 step_order INTEGER,
@@ -344,7 +422,7 @@ async def init_db():
                 content TEXT,
                 is_active INTEGER DEFAULT 1
             )""")  # legacy — kept only to migrate old texts
-        await db.execute("""
+        await db_ddl("""
             CREATE TABLE IF NOT EXISTS media_vault (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER,
@@ -354,7 +432,7 @@ async def init_db():
                 utr_code TEXT,
                 timestamp TEXT
             )""")
-        await db.execute("""
+        await db_ddl("""
             CREATE TABLE IF NOT EXISTS bot_messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
@@ -373,7 +451,7 @@ async def init_db():
                 created_at TEXT,
                 updated_at TEXT
             )""")
-        await db.execute("""
+        await db_ddl("""
             CREATE TABLE IF NOT EXISTS media (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 kind TEXT,
@@ -383,8 +461,8 @@ async def init_db():
                 filename TEXT,
                 created_at TEXT
             )""")
-        await db.execute("CREATE TABLE IF NOT EXISTS bot_settings (key TEXT PRIMARY KEY, value TEXT)")
-        await db.execute("""
+        await db_ddl("CREATE TABLE IF NOT EXISTS bot_settings (key TEXT PRIMARY KEY, value TEXT)")
+        await db_ddl("""
             CREATE TABLE IF NOT EXISTS auto_log (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER,
@@ -393,16 +471,16 @@ async def init_db():
                 sent_at TEXT
             )""")
 
-        await _add_columns(db, "users", [
+        await _add_columns("users", [
             ("is_pending", "INTEGER DEFAULT 0"), ("last_message", "TEXT"), ("last_time", "TEXT"),
             ("last_customer_at", "TEXT"), ("last_agent_at", "TEXT"), ("created_at", "TEXT"),
         ])
-        await _add_columns(db, "messages", [("rule_name", "TEXT"), ("ts", "TEXT")])
-        await _add_columns(db, "media_vault", [("ts", "TEXT")])
-        await _add_columns(db, "bot_messages", [
+        await _add_columns("messages", [("rule_name", "TEXT"), ("ts", "TEXT")])
+        await _add_columns("media_vault", [("ts", "TEXT")])
+        await _add_columns("bot_messages", [
             ("parent_id", "INTEGER"), ("delay_minutes", "INTEGER DEFAULT 0"), ("skip_if_replied", "INTEGER DEFAULT 1"),
         ])
-        await db.execute("""
+        await db_ddl("""
             CREATE TABLE IF NOT EXISTS scheduled_sends (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER,
@@ -412,15 +490,14 @@ async def init_db():
             )""")
 
         for k, v in DEFAULT_SETTINGS.items():
-            await db.execute("INSERT OR IGNORE INTO bot_settings (key, value) VALUES (?, ?)", (k, v))
+            await db_run("INSERT INTO bot_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO NOTHING", (k, v))
 
         # Seed bot messages on first run (re-uses texts from the old flow_steps table)
-        async with db.execute("SELECT COUNT(*) FROM bot_messages") as c:
-            has_messages = (await c.fetchone())[0] > 0
+        has_messages = (await db_one("SELECT COUNT(*) AS n FROM bot_messages"))["n"] > 0
         if not has_messages:
             legacy = {}
-            async with db.execute("SELECT trigger_type, content FROM flow_steps ORDER BY step_order") as c:
-                for trig, content in await c.fetchall():
+            for row in await db_all("SELECT trigger_type, content FROM flow_steps ORDER BY step_order"):
+                    trig, content = row["trigger_type"], row["content"]
                     trig = (trig or "").strip()
                     if trig == "/start" and "start" not in legacy:
                         legacy["start"] = content
@@ -432,7 +509,7 @@ async def init_db():
                         legacy["quiet_minutes"] = int(m.group(1)) if m else 15
             ts = now_iso()
             for m in default_messages(legacy):
-                await db.execute(
+                await db_run(
                     """INSERT INTO bot_messages (name, kind, keywords, quiet_minutes, text, buttons,
                        is_active, is_core, sort_order, created_at, updated_at)
                        VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)""",
@@ -440,7 +517,6 @@ async def init_db():
                      json.dumps(m.get("buttons", []), ensure_ascii=False),
                      1 if m["kind"] in CORE_KINDS else 0, m.get("sort_order", 100), ts, ts),
                 )
-        await db.commit()
 
 
 async def get_setting(key: str) -> str:
@@ -479,25 +555,23 @@ async def log_message(user_id: int, sender: str, text: str, media_type: str = "t
     pending: "auto" (customer→1, agent→0, bot→unchanged), 0, 1 or "keep"."""
     ts = now_iso()
     clock = ist_clock()
-    async with aiosqlite.connect(DB_PATH, timeout=15) as db:
-        await db.execute(
-            "INSERT INTO messages (user_id, sender, text, media_type, timestamp, rule_name, ts) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (user_id, sender, text, media_type, clock, rule_name, ts),
-        )
-        if pending == "auto":
-            pending = {"customer": 1, "agent": 0}.get(sender, "keep")
-        sets = ["last_message = ?", "last_time = ?"]
-        args = [(text or "")[:100], clock]
-        if pending != "keep":
-            sets.append("is_pending = ?")
-            args.append(int(pending))
-        if sender == "agent":
-            sets.append("last_agent_at = ?")
-            args.append(ts)
-        args.append(user_id)
-        await db.execute(f"UPDATE users SET {', '.join(sets)} WHERE user_id = ?", args)
-        await db.commit()
+    await db_run(
+        "INSERT INTO messages (user_id, sender, text, media_type, timestamp, rule_name, ts) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (user_id, sender, text, media_type, clock, rule_name, ts),
+    )
+    if pending == "auto":
+        pending = {"customer": 1, "agent": 0}.get(sender, "keep")
+    sets = ["last_message = ?", "last_time = ?"]
+    args = [(text or "")[:100], clock]
+    if pending != "keep":
+        sets.append("is_pending = ?")
+        args.append(int(pending))
+    if sender == "agent":
+        sets.append("last_agent_at = ?")
+        args.append(ts)
+    args.append(user_id)
+    await db_run(f"UPDATE users SET {', '.join(sets)} WHERE user_id = ?", args)
 
 
 async def touch_customer(user: types.User):
@@ -2248,7 +2322,7 @@ async def api_vault_update(request):
 async def api_audience_counts(request):
     out = {}
     for key, sql in AUDIENCE_SQL.items():
-        out[key] = (await db_one(f"SELECT COUNT(*) AS n FROM ({sql})"))["n"]
+        out[key] = (await db_one(f"SELECT COUNT(*) AS n FROM ({sql}) AS sub"))["n"]
     return web.json_response(out)
 
 
@@ -2300,7 +2374,9 @@ async def health_check(request):
         db_ok = "ok"
     except Exception as e:
         db_ok = f"error: {e}"
-    return web.json_response({"status": "alive", "bot": "Play 246 Support Bot", "db": db_ok})
+    return web.json_response({"status": "alive", "bot": "Play 246 Support Bot", "db": db_ok,
+                              "database": "postgres" if USE_PG else "sqlite",
+                              "telegram": "polling" if BOT_POLLING else "crm-only"})
 
 
 r = app.router
@@ -2340,6 +2416,44 @@ r.add_get("/api/export/leads.csv", api_export_leads)
 # ==============================================================================
 # RUNNER — web CRM + Telegram bot in one process
 # ==============================================================================
+BOT_POLLING = False    # True once this copy is the one receiving Telegram messages
+BOT_LOCK_ID = 246246   # any fixed number; shared by every copy of this bot
+_bot_lock_conn = None
+
+
+async def acquire_bot_lock():
+    """Only ONE copy of the bot may poll Telegram. With Postgres, copies race for an advisory
+    lock; the losers keep serving the CRM and retry every 30 seconds (e.g. during a deploy)."""
+    global _bot_lock_conn
+    if not USE_PG:
+        return
+    import asyncpg
+    while True:
+        try:
+            conn = await asyncpg.connect(DATABASE_URL, statement_cache_size=0)
+            if await conn.fetchval("SELECT pg_try_advisory_lock($1)", BOT_LOCK_ID):
+                _bot_lock_conn = conn
+                logging.info("Bot lock acquired: this copy runs the Telegram bot.")
+                asyncio.create_task(_watch_bot_lock())
+                return
+            await conn.close()
+            logging.warning("Another copy of the bot is running. Serving the CRM only; retrying in 30s.")
+        except Exception as e:
+            logging.warning(f"Bot lock check failed ({e}); retrying in 30s.")
+        await asyncio.sleep(30)
+
+
+async def _watch_bot_lock():
+    """If the lock connection drops, another copy could take over: stop this one so Render restarts it."""
+    while True:
+        await asyncio.sleep(60)
+        try:
+            await _bot_lock_conn.fetchval("SELECT 1")
+        except Exception as e:
+            logging.error(f"Lost the bot lock connection ({e}). Restarting to avoid two bots polling.")
+            os._exit(1)
+
+
 async def main():
     await init_db()
 
@@ -2347,6 +2461,7 @@ async def main():
     await runner.setup()
     await web.TCPSite(runner, "0.0.0.0", WEB_PORT).start()
     print("=" * 60)
+    print(f"  DATABASE: {'Postgres (DATABASE_URL)' if USE_PG else 'SQLite ' + DB_PATH}")
     print(f"  PLAY 246 CRM IS LIVE AT: http://localhost:{WEB_PORT}")
     if not CRM_PASSWORD:
         print("  ⚠️  CRM_PASSWORD is not set — the CRM is open to anyone with the link.")
@@ -2357,6 +2472,7 @@ async def main():
         await asyncio.Event().wait()
         return
 
+    await acquire_bot_lock()
     try:
         await bot.set_my_commands([BotCommand(command="start", description="Start the bot")],
                                   scope=BotCommandScopeAllPrivateChats())
@@ -2372,6 +2488,8 @@ async def main():
     except Exception as e:
         logging.warning(f"Could not set bot commands: {e}")
 
+    global BOT_POLLING
+    BOT_POLLING = True
     asyncio.create_task(quiet_loop())
     print("  TELEGRAM BOT IS POLLING")
     await dp.start_polling(bot)

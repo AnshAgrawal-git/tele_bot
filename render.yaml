@@ -1,33 +1,29 @@
-# Render Blueprint for the Play 246 Telegram bot + CRM.
-# Paid plan with a persistent disk, so leads.db survives deploys and restarts.
+# Render Blueprint for the Play 246 Telegram bot + CRM (free plan + Supabase Postgres).
+# All data lives in Supabase (DATABASE_URL), so nothing is lost on deploys, restarts or sleep.
 services:
   - type: web
-    name: play246-bot
+    name: play246-crm-v2
     runtime: python
-    plan: starter            # paid: never sleeps; needed for a persistent disk
-    region: singapore        # closest Render region to India
+    plan: free
+    region: singapore        # same region as the Supabase project
+    branch: feature/bot-messages-crm
     buildCommand: pip install -r requirements.txt
     startCommand: python bot.py
-    healthCheckPath: /health
-    numInstances: 1          # the bot uses Telegram polling: only ONE copy may run
-    disk:
-      name: data
-      mountPath: /var/data   # survives deploys and restarts; Render snapshots it daily
-      sizeGB: 1
+    healthCheckPath: /health # also keep it pinged by UptimeRobot every 5 min
     envVars:
       - key: BOT_TOKEN       # from @BotFather; set in the dashboard, never commit it
         sync: false
       - key: ADMIN_GROUP_ID  # -1004349789648
         sync: false
-      - key: CRM_PASSWORD    # login password for the web CRM; leave empty = anyone with the link can open it
+      - key: DATABASE_URL    # Supabase → Connect → Session pooler (port 5432)
+        sync: false
+      - key: CRM_PASSWORD    # login password for the web CRM; empty = anyone with the link can open it
         sync: false
       - key: CRM_URL         # this service's public URL, used by the bot's "Open CRM" button
         sync: false
-      - key: DB_PATH         # the SQLite file lives on the persistent disk
-        value: /var/data/leads.db
       - key: PORT
         value: 10000
       - key: PYTHON_VERSION
         value: 3.10.7
-      - key: RUN_BOT
+      - key: RUN_BOT         # 1 = this service receives Telegram messages (only one copy may)
         value: "1"

@@ -4,12 +4,12 @@
 This repository contains a unified **Telegram Bot** and **Web CRM Dashboard** built for Play 246 (gaming/betting lead management and customer support platform).
 
 - **GitHub Repository**: https://github.com/AnshAgrawal-git/tele_bot
-- **Live Cloud Deployment**: https://play246-crm.onrender.com (Render Free Tier)
-- **Health Check / Keep-Alive**: https://play246-crm.onrender.com/health (monitored by UptimeRobot every 5m)
+- **Live Cloud Deployment**: https://play246-crm-v2.onrender.com (Render free plan, branch `feature/bot-messages-crm`; old service `play246-crm` to be suspended)
+- **Health Check / Keep-Alive**: https://play246-crm-v2.onrender.com/health (keep monitored by UptimeRobot every 5m)
 - **Bot Username**: `@prototypetelegram247bot`
 - **Admin Group**: `Play 246 Admin Inbox` (`-1004349789648`)
 
-> ℹ️ **Render paid plan + persistent disk.** `render.yaml` (Blueprint) sets `plan: starter`, a 1 GB disk at `/var/data` and `DB_PATH=/var/data/leads.db`, so leads, chats and edits survive deploys and restarts (Render snapshots the disk daily). Deploys cause ~30–60 s downtime (no zero-downtime deploys with a disk); Telegram queues messages meanwhile. Only one instance may run (polling). `BOT_TOKEN`, `ADMIN_GROUP_ID`, `CRM_PASSWORD` and `CRM_URL` are set in the Render dashboard. The service is moving to a new Render account; the URLs above may change.
+> ℹ️ **Render free plan + Supabase Postgres.** Service `play246-crm-v2` (https://play246-crm-v2.onrender.com) runs on Render's free plan; all data lives in Supabase via `DATABASE_URL` (Session pooler, port 5432 — Render has no IPv6). Nothing is lost on deploys/restarts/sleep. Keep `/health` pinged by UptimeRobot every 5 min. Only one copy may poll Telegram: a Postgres advisory lock (`pg_try_advisory_lock(246246)`) makes any extra copy serve the CRM only until the lock frees.
 
 ---
 
@@ -17,7 +17,7 @@ This repository contains a unified **Telegram Bot** and **Web CRM Dashboard** bu
 - **Language**: Python 3.10+
 - **Telegram Bot Framework**: `aiogram` (v3.31.0) with Forum Topics + FSM (admin menu wizards)
 - **Web Server / REST API**: `aiohttp` (v3.11+), embedded directly inside `bot.py`
-- **Database**: SQLite (`leads.db`) via `aiosqlite`
+- **Database**: Supabase Postgres via `asyncpg` when `DATABASE_URL` is set; otherwise local SQLite (`leads.db`) via `aiosqlite`. All SQL is written SQLite-style (`?`) and translated for Postgres in `db_all`/`db_one`/`db_run`/`db_ddl` — always use these helpers.
 - **Frontend**: Single-page vanilla HTML/CSS/JS in `crm.html` (no CDN dependencies)
 - **Deployment Platform**: Render (`render.yaml`, `Procfile`, `requirements.txt`)
 
@@ -46,8 +46,9 @@ tele_bot/
 | `ADMIN_GROUP_ID` | `-1004349789648` |
 | `PORT` | `8080` locally, `10000` on Render |
 | `CRM_PASSWORD` | Password for the CRM login. Empty = CRM is open (warning shown) |
-| `DB_PATH` | Optional SQLite path (e.g. `/var/data/leads.db` on a persistent disk) |
-| `RUN_BOT` | `0` = web CRM only (no Telegram polling) for local testing |
+| `DATABASE_URL` | Supabase Postgres connection string (Session pooler). Empty = local SQLite |
+| `DB_PATH` | SQLite file path, only used without `DATABASE_URL` |
+| `RUN_BOT` | `0` = web CRM only (no Telegram polling). Keep `0` in your local `.env` |
 
 > When running locally with polling, suspend Render first or you'll get `TelegramConflictError`. Use `RUN_BOT=0` to test only the CRM.
 
@@ -79,7 +80,9 @@ On first start, defaults are seeded (texts from the legacy `flow_steps` table ar
 
 ---
 
-## Database Schema (`leads.db`)
+## Database Schema (Supabase Postgres / `leads.db`)
+Move a local `leads.db` into Supabase with `python tools/migrate_to_supabase.py` (keeps ids; `--force` to overwrite).
+
 1. **`users`**: `user_id` (PK), `first_name`, `username`, `phone_number`, `topic_id`, `is_pending`, `last_message`, `last_time`, `last_customer_at`, `last_agent_at`, `created_at` (ISO UTC)
 2. **`messages`**: `id`, `user_id`, `sender` ('customer'|'agent'|'bot'), `text`, `media_type`, `timestamp`, `ts` (ISO UTC), `rule_name`
 3. **`bot_messages`**: `id`, `name`, `kind`, `keywords`, `match_mode`, `quiet_minutes`, `text`, `buttons` (JSON), `media_id`, `is_active`, `is_core`, `sort_order`, `use_count`, `last_used_at`, `created_at`, `updated_at`
