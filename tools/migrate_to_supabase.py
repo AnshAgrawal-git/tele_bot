@@ -47,7 +47,8 @@ async def main():
                     print(f"  {table:16} skipped (not in {os.path.basename(src)})")
                     continue
                 pg_cols = {r["column_name"]: r["data_type"] for r in await conn.fetch(
-                    "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1", table)}
+                    "SELECT column_name, data_type FROM information_schema.columns "
+                    "WHERE table_schema = 'public' AND table_name = $1", table)}  # not Supabase's auth.users
                 rows = [dict(r) for r in lite.execute(f"SELECT * FROM {table}")]
                 cols = [c for c in (rows[0].keys() if rows else []) if c in pg_cols]
                 await conn.execute(f"DELETE FROM {table}")

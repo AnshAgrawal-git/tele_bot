@@ -6,6 +6,8 @@ WORK = sys.argv[1]
 TMP = tempfile.mkdtemp()
 shutil.copy(os.path.join(WORK, "leads.db"), os.path.join(TMP, "leads.db"))
 os.environ["DB_PATH"] = os.path.join(TMP, "leads.db")
+os.environ["DATABASE_URL"] = ""   # never let tests touch the real Supabase DB from .env
+os.environ["RUN_BOT"] = "0"
 os.environ["CRM_PASSWORD"] = "secret123"
 sys.path.insert(0, WORK)
 
